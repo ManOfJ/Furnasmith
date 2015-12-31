@@ -1,0 +1,22 @@
+[
+{
+    "modid": "moj_fsmith",
+    "name": "Furnasmith",
+    "description": "",
+    "version": "1.8-1",
+    "mcversion": "1.8-11.14.4.1577",
+    "url": "https://github.com/ManOfJ/Furnasmith",
+    "updateUrl": "",
+    "authorList": [
+        "Man of J"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [
+        
+    ],
+    "dependencies": [
+        
+    ]
+}
+]

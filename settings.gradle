@@ -1,0 +1,183 @@
+
+// プロジェクト評価前に拡張プロパティの追加や
+// 必要なプラグインの読み込みを行う
+gradle.beforeProject { project ->
+
+  // プロジェクトの拡張プロパティの追加
+  project.ext {
+    // この Mod に関する設定の集合
+    mcmod = [
+      // Mod のビルドに関する設定の集合
+      build: [
+        // 開発に使用する言語の名称
+        // java か scala のどちらかを指定
+        language: 'java',
+
+        // コンパイルされるファイルの java 言語レベルを指定
+        languageLevel: 1.6,
+
+        // ソースファイルのエンコーディングを指定
+        encoding: 'utf8',
+
+        // 開発中であるか否か
+        snapshot: false,
+
+        // リリース用ビルドであるか否か
+        // true にすることで生成された jar ファイルに対して
+        // バイナリ改変処理が行われる
+        release: false,
+
+
+        // Maven に関する設定の集合
+        maven: [
+          // Maven プラグインを有効にするか否か
+          enable: false,
+
+          // Maven リポジトリに関する設定の集合
+          repositories: [
+            // 依存関係解決の際にセントラルリポジトリを参照するか否か
+            central: false,
+
+            // 依存関係解決の際にローカルリポジトリを参照するか否か
+            local: false,
+
+            // 依存関係解決の際に JCenter リポジトリを参照するか否か
+            jcenter: false,
+
+            // 依存関係解決の際に参照するリポジトリの URL 一覧
+            url: []
+          ]
+        ],
+
+
+        // この Mod が依存するライブラリとそのスコープに関する設定
+        dependencies: [
+          // TODO: ドキュメント記述
+          // compile: [ 'groupId:artifactId:version', '...' ]
+        ],
+
+
+        // 出力される jar ファイルに関する設定の集合
+        jar: [
+          // jar ファイルのグループ ID
+          // 設定必須項目
+          groupId: '',
+
+          // jar ファイルのベース名称
+          // 設定しない場合は mcmod.info.name の値が参照される
+          baseName: '',
+
+          // アーカイブファイル出力に関する設定の集合
+          archive: [
+            // ソース･アーカイブを出力するか否か
+            source: true,
+
+            // ドキュメント･アーカイブを出力するか否か
+            document: false
+          ],
+
+          // マニフェストファイルに関する設定の集合
+          manifest: [
+            // マニフェストファイルに記述されるメインアトリビュートの内容
+            // 例)
+            // attributes: [ FMLCorePlugin: 'com.example.LoadingPlugin' ]
+            attributes: [:]
+          ]
+        ]
+      ],
+
+
+      // mcmod.info ファイルに記述される情報の集合
+      // また､これらの情報のうち modid, name, version, updateUrl の項目は
+      // それぞれ @@MODID@@, @@MODNAME@@, @@MODVERSION@@, @@UPDATEJSON@@ という
+      // 文字列を置換する際に参照される
+      info: [
+        // この Mod の ID
+        // 必須項目
+        modid: '',
+
+        // この Mod の名称
+        // 必須項目
+        name: '',
+
+        // この Mod の説明文
+        description: '',
+
+        // この Mod のバージョン
+        // 必須項目
+        version: '',
+
+        // この Mod の開発に使用する Forge のバージョン
+        // 必須項目
+        mcversion: '',
+
+        // この Mod を配布している Web サイトの URL
+        url: '',
+
+        // この Mod のアップデート確認用の json ファイルの URL
+        // json の書式に関しては下記 URL を参照
+        // https://gist.github.com/LexManos/7aacb9aa991330523884
+        updateUrl: '',
+
+        // この Mod の作者一覧
+        authorList: [],
+
+        // この Mod のクレジット表記
+        credits: '',
+
+        // この Mod のロゴファイル
+        logoFile: '',
+
+        // この Mod のスクリーンショット一覧
+        screenshots: [],
+
+        // この Mod が依存する Mod 一覧
+        dependencies: []
+      ]
+    ]
+
+    // ビルド設定に対するエイリアスを設定
+    bldOpt = mcmod.build
+
+    // インフォメーションに対するエイリアスを設定
+    modInf = mcmod.info
+
+    // プロジェクト共用のテンポラリフォルダ
+    temporaryDir = project.file( "${ project.buildDir }/tmp" )
+
+    // 指定された名称のプラグインが
+    // ロードされているか否か評価するクロージャ
+    hasPlugin = { project.plugins.hasPlugin( it ) }
+
+    // プロジェクトに定義されている
+    // タスクの名称一覧を取得するクロージャ
+    taskNames = { -> project.tasks.getNames() }
+
+    // 指定された名称のタスクが
+    // 定義されているか否か評価するクロージャ
+    hasTask = { taskNames().contains( it ) }
+
+  }
+
+  // プロパティの設定スクリプトを読み込む
+  project.apply from: 'properties.gradle'
+
+  // ビルド設定のアサーション
+  project.bldOpt.with {
+    assert [ 'java', 'scala' ].contains( language )
+    assert jar.groupId != null && !jar.groupId.isEmpty()
+  }
+
+  // Mod 情報のアサーション
+  project.modInf.with {
+    assert modid     != null && !modid.isEmpty()
+    assert name      != null && !name.isEmpty()
+    assert version   != null && !version.isEmpty()
+    assert mcversion != null && !mcversion.isEmpty()
+  }
+
+  // 各種プラグインのロード
+  if ( project.bldOpt.language == 'scala' ) { project.apply plugin: 'scala' }
+  if ( project.bldOpt.maven.enable )        { project.apply plugin: 'maven' }
+
+}

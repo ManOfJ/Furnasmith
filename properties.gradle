@@ -1,0 +1,29 @@
+
+// クロージャ内で情報にアクセスするため
+// ローカル変数に拡張プロパティをバインドしておく
+def mi = modInf
+def bo = bldOpt
+
+
+// mcmod.info の値を設定
+project.configure( mi ) {
+  modid      = 'moj_fsmith'
+  name       = 'Furnasmith'
+  version    = '1.8-1'
+  mcversion  = '1.8-11.14.4.1577'
+  url        = "https://github.com/ManOfJ/$name"
+  authorList = [ 'Man of J' ]
+}
+
+// mcmod.build の値を設定
+project.configure( bo ) {
+  language = 'scala'
+  jar.with {
+    archive.source = false
+    groupId = "manofj.com.github.${ mi.modid }"
+    manifest.attributes = [
+      FMLCorePlugin:               "${ bo.jar.groupId }.FurnasmithPlugin",
+      FMLCorePluginContainsFMLMod: "${ bo.jar.groupId }.Furnasmith"
+    ]
+  }
+}

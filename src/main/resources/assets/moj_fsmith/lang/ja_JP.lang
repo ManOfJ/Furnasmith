@@ -1,0 +1,7 @@
+moj_fsmith.config.gui.title=Furnasmith コンフィグ
+moj_fsmith.config.allow_log_output=ログ出力許可
+moj_fsmith.config.allow_log_output.tooltip=アイテムのリソースロケーション･クラス名称といった情報をログファイルに書き出します
+moj_fsmith.config.repair_condition=修理条件
+moj_fsmith.config.repair_condition.tooltip=ツールの損耗度がこの値以上であれば修理が可能となります
+moj_fsmith.config.keep_enchantment=エンチャントの保持
+moj_fsmith.config.keep_enchantment.tooltip=修理時にエンチャントを保持するか否か
