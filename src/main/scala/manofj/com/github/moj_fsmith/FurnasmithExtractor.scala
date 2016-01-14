@@ -68,7 +68,7 @@ object FurnasmithExtractor {
         }
 
       def findItem( rl: String ): Option[ Item ] =
-        Item.itemRegistry.getObject( rl ) match {
+        Item.getByNameOrId( rl ) match {
           case item: Item => Option( item )
           case _ =>
             Furnasmith.log.warn( s"Illegal resource location: $rl" )

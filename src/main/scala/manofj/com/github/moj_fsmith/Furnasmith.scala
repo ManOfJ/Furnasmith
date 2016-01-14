@@ -8,10 +8,11 @@ import manofj.com.github.moj_fsmith.FurnasmithConfigHandler.keep_enchantment
 import manofj.com.github.moj_fsmith.FurnasmithExtractor.{ Blacklist, Repairable }
 import net.minecraft.item.{ Item, ItemBlock, ItemStack }
 import net.minecraft.util.{ ResourceLocation, StatCollector }
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.event.{ FMLPostInitializationEvent, FMLPreInitializationEvent }
 import net.minecraftforge.fml.common.registry.GameData
-import net.minecraftforge.fml.common.{ FMLCommonHandler, Mod }
 import org.apache.logging.log4j.{ LogManager, Logger }
 
 
@@ -66,7 +67,7 @@ object Furnasmith {
     loggerOpt = Option( evt.getModLog )
 
     FurnasmithConfigHandler.captureConfig( evt.getModConfigurationDirectory )
-    FMLCommonHandler.instance.bus.register( FurnasmithConfigHandler )
+    MinecraftForge.EVENT_BUS.register( FurnasmithConfigHandler )
   }
 
   @EventHandler
