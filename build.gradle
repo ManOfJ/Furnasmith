@@ -1,49 +1,80 @@
-/*
-// 最新の Forge-Gradle を使用する場合はこちらのビルドスクリプトを使用する
+
+// Forge Gradle プラグインのロードを行い
+// 必要であれば Kotlin プラグインもロードする
 buildscript {
   repositories {
-    jcenter()
-    maven {
-      name = 'forge'
-      url  = 'http://files.minecraftforge.net/maven'
+    if ( !useSnapshotForgeGradle )
+      maven { url 'https://plugins.gradle.org/m2/' }
+    else
+    {
+      jcenter()
+      maven {
+        name 'forge'
+        url  'http://files.minecraftforge.net/maven'
+      }
     }
+
+    if_kotlinProject { mavenCentral() }
   }
   dependencies {
-    classpath 'net.minecraftforge.gradle:ForgeGradle:2.0-SNAPSHOT'
+    if ( !useSnapshotForgeGradle )
+      classpath 'gradle.plugin.net.minecraftforge.gradle:ForgeGradle:2.0.2'
+    else
+      classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+
+    if_kotlinProject
+    {
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
   }
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
-*/
+// 開発言語に Kotlin が指定されていれば
+// プラグインのロード, 使用するライブラリの登録などを行う
+if_kotlinProject {
+  apply plugin: 'kotlin'
 
-// Forge-Gradle の安定版を使用する
-plugins {
-  id 'net.minecraftforge.gradle.forge' version '2.0.2'
+  def kotlinLibraries =
+    [
+      "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
+      "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    ]
+  bild.with {
+    // ライブラリ取得のためセントラルリポジトリを参照
+    maven.repositories.central = true
+
+    if ( dependencies.compile )
+      dependencies.compile += kotlinLibraries
+    else
+      dependencies.compile  = kotlinLibraries
+  }
 }
 
+
 // 基本情報の設定
-group            = bldOpt.jar.groupId
-archivesBaseName = bldOpt.jar.baseName ?: modInf.name
-version          = modInf.version
+group            = bild.jar.groupId
+archivesBaseName = bild.jar.baseName ?: info.name
+version          = info.version
 
 // Forge 環境の設定
 minecraft {
-  version          = modInf.mcversion
+  version          = info.mcversion
   runDir           = 'run'
-  mappings         = 'snapshot_20141130'
+  mappings         = 'stable_20'
   makeObfSourceJar = false
 }
 
 // コンパイルタスクの設定
 tasks.withType( AbstractCompile ) {
-  sourceCompatibility = bldOpt.languageLevel
-  targetCompatibility = bldOpt.languageLevel
+  sourceCompatibility = bild.languageLevel
+  targetCompatibility = bild.languageLevel
 
-  if ( options ) { options.encoding = bldOpt.encoding }
+  if ( hasProperty( 'options' ) ) { options.encoding = bild.encoding }
 }
 
 // リポジトリの設定
 repositories {
-  def repoOpt = bldOpt.maven.repositories
+  def repoOpt = bild.maven.repositories
 
   if ( repoOpt.central ) { mavenCentral() }
   if ( repoOpt.local )   { mavenLocal()   }
@@ -53,30 +84,22 @@ repositories {
 }
 
 // 依存関係の設定
-dependencies {
-  bldOpt.dependencies.each { k, v ->
-    v.each { "$k" it }
-  }
+bild.dependencies.each { k, v ->
+  dependencies."$k" v
 }
 
 // jar のアトリビュートを設定
-jar.manifest.attributes = bldOpt.jar.manifest.attributes
+jar.manifest.attributes = bild.jar.manifest.attributes
 
 
 // タスク定義･事前準備 ********************************
 
 
+// Furge-Gradle ソースコピー･タスクをインポート
+import net.minecraftforge.gradle.user.TaskSourceCopy
+
 // メインのソースセットを拡張プロパティにバインド
-project.ext.mainSourceSet = sourceSets[ SourceSet.MAIN_SOURCE_SET_NAME ]
-
-
-// コンパイル前の変数展開時に参照される辞書を返す関数
-def replacements() { [
-  '@@MODID@@':       modInf.modid,
-  '@@MODNAME@@':     modInf.name,
-  '@@MODVERSION@@':  modInf.version,
-  '@@UPDATEJSON@@':  modInf.updateUrl
-] }
+project.ext.mainSourceSet = sourceSets.main
 
 // オブジェクトのすべての要素を文字列型に変換する関数群
 def e2s( Map    obj ) { obj.collectEntries { k, v -> [ "$k": e2s( v ) ] } }
@@ -86,7 +109,7 @@ def e2s( Object obj ) { String.valueOf( obj )                             }
 // mcmod.info に記述される内容を返すクロージャ
 def genMcmodInfoText = {
   def nl = System.getProperty( 'line.separator' )
-  def jb = new groovy.json.JsonBuilder( e2s( modInf ) )
+  def jb = new groovy.json.JsonBuilder( e2s( info ) )
   "[$nl${ jb.toPrettyString() }$nl]"
 }
 
@@ -116,7 +139,7 @@ task makeAssetsDir( dependsOn: makeMainSourceDirs ) {
 
     // 作成対象となるディレクトリ一覧を返すクロージャ
     assetsDirs = {
-      destinationDirs.collect { new File( it, "assets/${ modInf.modid }" ) }
+      destinationDirs.collect { new File( it, "assets/${ info.modid }" ) }
     }
   }
 
@@ -160,18 +183,47 @@ task genMcmodInfo {
   }
 }
 
+// 各プログラミング言語のソースコピータスクの存在をチェック
+// 定義されていなければ新規に定義する
+jvmLanguages.findAll { hasPlugin( it ) } each { lang ->
+  if ( mainSourceSet[ lang ] ) {
+    def sourceCopyTaskName = "sourceMain${ lang.capitalize() }"
+    if ( hasTask( sourceCopyTaskName ) ) return
+
+    task "$sourceCopyTaskName"( type: TaskSourceCopy ) {
+      setSource mainSourceSet[ lang ]
+      setOutput project.file( "$buildDir/sources/$lang" )
+    }
+
+    def sourceCopyTask  = tasks."$sourceCopyTaskName"
+    def compileTaskName = mainSourceSet.getCompileTaskName( lang )
+    def compileTask     = tasks."$compileTaskName"
+    compileTask.dependsOn sourceCopyTask
+    compileTask.source = project.fileTree( sourceCopyTask.output )
+  }
+}
+
 // ソースコードのアーカイブを出力するタスクを定義
-if ( bldOpt.jar.archive.source && hasTask( 'sourceMainJava' ) ) {
-  task sourcesJar( type: Jar, dependsOn: [ processResources, sourceMainJava ] ) {
+if ( bild.jar.archive.source ) {
+  task sourcesJar( type: Jar, dependsOn: [ processResources ] ) {
     classifier = 'sources'
     from processResources.destinationDir
-    from sourceMainJava.output
   }
 
-  // scala のソースを取り込むように設定
-  if ( hasTask( 'sourceMainScala' ) ) {
-    sourcesJar.dependsOn sourceMainScala
-    sourcesJar.from sourceMainScala.output
+  // 各プログラミング言語のソースを読み込むようにする
+  jvmLanguages.findAll { hasPlugin( it ) } each { lang ->
+    def sourceCopyTaskName = "sourceMain${ lang.capitalize() }"
+    if ( !hasTask( sourceCopyTaskName ) ) return
+
+    def sourceCopyTask = tasks."$sourceCopyTaskName"
+    sourcesJar.dependsOn sourceCopyTask
+    sourcesJar.from sourceCopyTask.output
+  }
+
+  // Forge Gradle の sourceJar と同じように依存関係を設定
+  assemble.dependsOn sourcesJar
+  if ( hasPlugin( 'maven' ) ) {
+    uploadArchives.dependsOn sourcesJar
   }
 
   // sourcesJar タスクを有効にする
@@ -179,26 +231,40 @@ if ( bldOpt.jar.archive.source && hasTask( 'sourceMainJava' ) ) {
 }
 
 // ドキュメントのアーカイブを出力するタスクを定義
-if ( bldOpt.jar.archive.document ) {
-  if ( hasTask( 'scaladoc' ) && hasTask( 'sourceMainScala' ) ) {
-    task scaladocJar( type: Jar, dependsOn: scaladoc ) {
-      classifier = 'scaladoc'
-      from scaladoc.destinationDir
-    }
-    // scaladocJar タスクを有効にする
-    artifacts.archives scaladocJar
+if ( bild.jar.archive.document ) {
+  def language           = bild.language
+  def docTaskName        = "${ language }doc"
+  def sourceCopyTaskName = "sourceMain${ language.capitalize() }"
 
-    scaladoc.source = project.fileTree( sourceMainScala.output )
+  // 開発に使用する言語のドキュメント生成タスクと
+  // ソースコピータスクが定義されていれば
+  // その言語のドキュメントアーカイブ生成タスクを定義する
+  if ( hasTask( docTaskName ) && hasTask( sourceCopyTaskName ) ) {
+    def docTask        = tasks."$docTaskName"
+    def docJarTaskName = "${ docTaskName }Jar"
+    def sourceCopyTask = tasks."$sourceCopyTaskName"
+
+    task "$docJarTaskName"( type: Jar, dependsOn: docTask ) {
+      classifier = docTaskName
+      from docTask.destinationDir
+    }
+
+    docTask.source = project.fileTree( sourceCopyTask.output )
+    // docJar タスクを有効にする
+    artifacts.archives tasks."$docJarTaskName"
   }
+  // 条件を満たしていなければ javadoc の
+  // アーカイブドキュメント生成タスクを定義する
   else if ( hasTask( 'javadoc' ) && hasTask( 'sourceMainJava' ) ) {
     task javadocJar( type: Jar, dependsOn: javadoc ) {
       classifier = 'javadoc'
       from javadoc.destinationDir
     }
+
+    // javadoc の生成を行うソースを指定
+    javadoc.source = project.fileTree( sourceMainJava.output )
     // javadocJar タスクを有効にする
     artifacts.archives javadocJar
-
-    javadoc.source = project.fileTree( sourceMainJava.output )
   }
 }
 
@@ -215,6 +281,4 @@ setupDecompWorkspace.finalizedBy makeMainSourceDirs,
                                  genMcmodInfo
 
 // ソースコードコピー･タスクに変数展開用の辞書をセットする
-tasks.withType( net.minecraftforge.gradle.user.TaskSourceCopy ) {
-  it.replace( replacements() )
-}
+tasks.withType( TaskSourceCopy )*.replace( replacements() )
