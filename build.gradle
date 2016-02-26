@@ -34,11 +34,6 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 if_kotlinProject {
   apply plugin: 'kotlin'
 
-  def kotlinLibraries =
-    [
-      "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
-      "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
-    ]
   bild.with {
     // ライブラリ取得のためセントラルリポジトリを参照
     maven.repositories.central = true
@@ -108,9 +103,8 @@ def e2s( Object obj ) { String.valueOf( obj )                             }
 
 // mcmod.info に記述される内容を返すクロージャ
 def genMcmodInfoText = {
-  def nl = System.getProperty( 'line.separator' )
   def jb = new groovy.json.JsonBuilder( e2s( info ) )
-  "[$nl${ jb.toPrettyString() }$nl]"
+  "[$eol${ jb.toPrettyString() }$eol]"
 }
 
 

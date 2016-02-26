@@ -1,4 +1,12 @@
 
+// 文字列に紐付けられた改行コード一覧
+def newLineMap = [
+  default: System.properties[ 'line.separator' ],
+  cr:      '\r',
+  lf:      '\n',
+  crlf:    '\r\n'
+]
+
 // 独自設定の定義とユーザの設定した値の反映を行う
 gradle.settingsEvaluated {
   gradle.rootProject {
@@ -13,12 +21,25 @@ gradle.settingsEvaluated {
       // Maven リポジトリから Kotlin を取得する際に参照される
       kotlinVersion = '1.0.0-beta-4584'
 
+      // 開発に使用する Kotlin のライブラリ一覧
+      // kotlin-stdlib は標準ライブラリのため必須
+      kotlinLibraries =
+      [
+        "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
+        "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+      ]
+
+      // mcmod.info の改行コードを指定する
+      // newLineMap のキーからいずれかを選択
+      newLineType = 'lf'
+
+
       // Mod に関する設定の集合
       mcmod = [
         // Mod のビルドに関する設定の集合
         build: [
           // 開発に使用する言語の名称
-          // java, scala, groovy, kotlin のいずれかを指定
+          // jvmLanguages の中からいずれかを指定
           language: 'java',
 
           // コンパイルされるファイルの java 言語レベルを指定
@@ -148,8 +169,13 @@ gradle.settingsEvaluated {
 
     }
 
+
     // ユーザ設定をロードする
     apply from: 'properties.gradle'
+
+
+    // システム設定のアサーション
+    assert newLineMap[ newLineType ]
 
     // ビルド設定のアサーション
     assert jvmLanguages.contains( bild?.language )
@@ -160,6 +186,7 @@ gradle.settingsEvaluated {
     assert info?.name?.trim()
     assert info?.version?.trim()
     assert info?.mcversion?.trim()
+
   }
 
 }
@@ -169,6 +196,9 @@ gradle.settingsEvaluated {
 gradle.beforeProject { project ->
   // build.gradle で利用する拡張プロパティの定義
   project.ext {
+
+    // 改行コードの設定
+    eol = newLineMap[ newLineType ]
 
     // 各言語のプロジェクト時のみ後続のブロックを実行するクロージャ
     // 使用例)
