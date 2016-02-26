@@ -1,14 +1,16 @@
-package manofj.com.github.moj_fsmith
+package com.manofj.minecraft.moj_fsmith
 
-import java.util
+import java.util.{ Set => JSet }
 
-import manofj.com.github.moj_fsmith.FurnasmithConfigHandler.{ CONFIG_ID, configElements }
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.resources.I18n
+
 import net.minecraftforge.fml.client.IModGuiFactory
 import net.minecraftforge.fml.client.IModGuiFactory.{ RuntimeOptionCategoryElement, RuntimeOptionGuiHandler }
 import net.minecraftforge.fml.client.config.GuiConfig
+
+import com.manofj.minecraft.moj_fsmith.FurnasmithConfigHandler.{ CONFIG_ID, configElements }
 
 
 /**
@@ -18,7 +20,7 @@ import net.minecraftforge.fml.client.config.GuiConfig
 class FurnasmithGuiFactory
   extends IModGuiFactory
 {
-  override def runtimeGuiCategories( ): util.Set[ RuntimeOptionCategoryElement ] = null
+  override def runtimeGuiCategories( ): JSet[ RuntimeOptionCategoryElement ] = null
 
   override def initialize( minecraftInstance: Minecraft ): Unit = {}
 

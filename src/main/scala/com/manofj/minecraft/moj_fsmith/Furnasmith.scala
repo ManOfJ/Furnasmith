@@ -1,19 +1,22 @@
-package manofj.com.github.moj_fsmith
+package com.manofj.minecraft.moj_fsmith
 
 import scala.collection.JavaConversions.asScalaSet
 import scala.collection.mutable.{ WeakHashMap => MutableWeakHashMap }
 import scala.language.existentials
 
-import manofj.com.github.moj_fsmith.FurnasmithConfigHandler.keep_enchantment
-import manofj.com.github.moj_fsmith.FurnasmithExtractor.{ Blacklist, Repairable }
+import org.apache.logging.log4j.{ LogManager, Logger }
+
 import net.minecraft.item.{ Item, ItemBlock, ItemStack }
 import net.minecraft.util.{ ResourceLocation, StatCollector }
+
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.event.{ FMLPostInitializationEvent, FMLPreInitializationEvent }
 import net.minecraftforge.fml.common.registry.GameData
-import org.apache.logging.log4j.{ LogManager, Logger }
+
+import com.manofj.minecraft.moj_fsmith.FurnasmithConfigHandler.keep_enchantment
+import com.manofj.minecraft.moj_fsmith.FurnasmithExtractor.{ Blacklist, Repairable }
 
 
 /**
@@ -42,6 +45,7 @@ object Furnasmith {
     *
     * パラメータ item が null ではなく､修復付加条件に当てはまるアイテムでもない場合は
     * 修復可能条件に当てはまるか確認｡ 条件を満たしていればダメージ値がゼロの同アイテムを返す
+ *
     * @param item かまどに入れられたアイテム
     * @return 諸条件を満たしていれば 'ダメージ値がゼロの同アイテム' そうでなければ null を返す
     */
@@ -73,8 +77,9 @@ object Furnasmith {
   @EventHandler
   def postInit( evt: FMLPostInitializationEvent ): Unit = {
     if ( FurnasmithConfigHandler.allow_log_output ) {
-      import GameData.{ getItemRegistry => itemRegistry }
-      import StatCollector.{ translateToLocal => i18n }
+      import StatCollector.{translateToLocal => i18n}
+
+      import GameData.{getItemRegistry => itemRegistry}
 
       // すべてのブロックではないアイテムの情報をログに出力
       log.info( "*" * 64 )

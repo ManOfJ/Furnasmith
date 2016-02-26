@@ -1,14 +1,17 @@
-package manofj.com.github.moj_fsmith.asm
+package com.manofj.minecraft.moj_fsmith.asm
 
 import scala.collection.JavaConversions.{ asScalaBuffer, asScalaIterator }
 
-import manofj.com.github.moj_fsmith.Furnasmith
-import net.minecraft.launchwrapper.IClassTransformer
-import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper.{ INSTANCE => remapper }
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import org.objectweb.asm.Opcodes.{ ACONST_NULL, ALOAD, GETSTATIC, INVOKEVIRTUAL }
 import org.objectweb.asm.tree.{ ClassNode, FieldInsnNode, InsnList, MethodInsnNode, MethodNode, VarInsnNode }
 import org.objectweb.asm.{ ClassReader, ClassWriter, Type }
+
+import net.minecraft.launchwrapper.IClassTransformer
+
+import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper.{ INSTANCE => remapper }
+
+import com.manofj.minecraft.moj_fsmith.Furnasmith
 
 
 /**
@@ -21,7 +24,7 @@ class FurnasmithTransformer
   // 可読性重視のため命名規則を無視している
   private[ this ] val FurnaceRecipes    = "net.minecraft.item.crafting.FurnaceRecipes"
   private[ this ] val getSmeltingResult = "getSmeltingResult"
-  private[ this ] val FurnasmithObj     = "manofj/com/github/moj_fsmith/Furnasmith$"
+  private[ this ] val FurnasmithObj     = "com/manofj/minecraft/moj_fsmith/Furnasmith$"
   private[ this ] val MethodDescriptor  = {
     val unmapItemStack = Type.getObjectType( remapper.unmap( "net/minecraft/item/ItemStack" ) )
     Type.getMethodDescriptor( unmapItemStack, unmapItemStack )

@@ -1,11 +1,13 @@
-package manofj.com.github.moj_fsmith
+package com.manofj.minecraft.moj_fsmith
 
-import java.util.Collections
 import java.io.{ File => JFile }
+import java.util.Collections
 
 import com.google.common.collect.Lists
+
 import net.minecraft.client.resources.I18n.{ format => i18n }
-import net.minecraftforge.common.config.{ Property, ConfigElement, Configuration }
+
+import net.minecraftforge.common.config.{ ConfigElement, Configuration, Property }
 import net.minecraftforge.fml.client.config.IConfigElement
 import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent

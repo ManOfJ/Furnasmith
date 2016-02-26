@@ -1,4 +1,4 @@
-package manofj.com.github.moj_fsmith
+package com.manofj.minecraft.moj_fsmith
 
 import java.util.{ Map => JMap }
 
@@ -12,13 +12,13 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.{ MCVersion, Transfor
   * FurnasmithTransformer をロードするだけの存在
   */
 @MCVersion( ForgeVersion.mcVersion )
-@TransformerExclusions( Array( "manofj.com.github.moj_fsmith." ) )
+@TransformerExclusions( Array( "com.manofj.minecraft.moj_fsmith." ) )
 class FurnasmithPlugin
   extends
     IFMLLoadingPlugin
 {
   override def getASMTransformerClass: Array[ String ] =
-    Array( "manofj.com.github.moj_fsmith.asm.FurnasmithTransformer" )
+    Array( "com.manofj.minecraft.moj_fsmith.asm.FurnasmithTransformer" )
 
   override def injectData( data: JMap[ String, AnyRef ] ): Unit = {}
 

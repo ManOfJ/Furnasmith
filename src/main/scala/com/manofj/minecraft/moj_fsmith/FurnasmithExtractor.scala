@@ -1,13 +1,15 @@
-package manofj.com.github.moj_fsmith
+package com.manofj.minecraft.moj_fsmith
 
 import java.io.{ File => JFile }
 
 import scala.collection.JavaConversions.asScalaIterator
 import scala.collection.mutable.{ Buffer => MutableBuffer }
 
-import manofj.com.github.moj_fsmith.FurnasmithConfigHandler.repair_condition
-import net.minecraft.item.{ Item, ItemStack }
 import org.apache.commons.io.FileUtils
+
+import net.minecraft.item.{ Item, ItemStack }
+
+import com.manofj.minecraft.moj_fsmith.FurnasmithConfigHandler.repair_condition
 
 
 /**
