@@ -5,8 +5,8 @@
     "description": "",
     "version": "1.8.9-1",
     "mcversion": "1.8.9-11.15.0.1694",
-    "url": "https://github.com/ManOfJ/Furnasmith",
-    "updateUrl": "",
+    "url": "http://manofj.com/minecraft",
+    "updateUrl": "http://manofj.com/minecraft/update?v=Furnasmith",
     "authorList": [
         "Man of J"
     ],

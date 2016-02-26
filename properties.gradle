@@ -11,6 +11,7 @@ project.configure( i ) {
   name       = 'Furnasmith'
   version    = '1.8.9-1'
   url        = "http://manofj.com/minecraft"
+  updateUrl  = "http://manofj.com/minecraft/update?v=${ i.name }"
   authorList = [ 'Man of J' ]
 }
 

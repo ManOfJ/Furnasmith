@@ -27,6 +27,7 @@ import com.manofj.minecraft.moj_fsmith.FurnasmithExtractor.{ Blacklist, Repairab
 @Mod( modid       = MOD_ID,
       name        = NAME,
       version     = VERSION,
+      updateJSON  = UPDATE_JSON,
       modLanguage = LANGUAGE,
       guiFactory  = GUI_FACTORY )
 object Furnasmith {
@@ -45,7 +46,7 @@ object Furnasmith {
     *
     * パラメータ item が null ではなく､修復付加条件に当てはまるアイテムでもない場合は
     * 修復可能条件に当てはまるか確認｡ 条件を満たしていればダメージ値がゼロの同アイテムを返す
- *
+    *
     * @param item かまどに入れられたアイテム
     * @return 諸条件を満たしていれば 'ダメージ値がゼロの同アイテム' そうでなければ null を返す
     */
