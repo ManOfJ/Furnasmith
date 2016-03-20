@@ -9,8 +9,9 @@ def b = bild
 project.configure( i ) {
   modid      = 'moj_fsmith'
   name       = 'Furnasmith'
-  version    = '1.8.9-1'
-  url        = "https://github.com/ManOfJ/$name"
+  version    = '1.9-1'
+  url        = "http://manofj.com/minecraft"
+  updateUrl  = "http://manofj.com/minecraft/update?v=${ i.name }"
   authorList = [ 'Man of J' ]
 }
 
@@ -19,7 +20,7 @@ project.configure( b ) {
   language = 'scala'
   jar.with {
     archive.source = false
-    groupId = "manofj.com.github.${ i.modid }"
+    groupId = "com.manofj.minecraft.${ i.modid }"
     manifest.attributes = [
       FMLCorePlugin:               "${ b.jar.groupId }.FurnasmithPlugin",
       FMLCorePluginContainsFMLMod: "${ b.jar.groupId }.Furnasmith"

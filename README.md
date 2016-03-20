@@ -1,7 +1,7 @@
-Furnasmith - Minecraft Mod
+Furnasmith - [Minecraft Mod](http://manofj.com/minecraft/)
 ===============================
 
-Version 1.8.9-1
+Version 1.9-1
 ![IMAGE](http://i.imgur.com/aNZ2q0F.gif "")
 
 0. 既知の不具合
@@ -30,7 +30,7 @@ Version 1.8.9-1
     - ゲームメニュー ( ゲーム中 ESC ) の Mod Options... を選択 -> 一覧から Furnasmith を選択 -> Config  ボタンを押下
       - Note: 古いバージョンの Minecraft Forge だと動作しないことがあります
   - コンフィグファイルを直接編集する場合
-    - Forge 環境コンフィグフォルダの Furnasmith.cfg をエディタで編集
+    - Forge 環境コンフィグフォルダの moj_fsmith.cfg をエディタで編集
 
 修復可能･不可能指定ファイル
 
@@ -59,6 +59,9 @@ RL minecraft:golden_sword
     バージョンの後ろに表記されている Mdk のバージョンは開発に使用したものです
     このバージョンでなければ動作しない､ということはないのであくまで参考程度に考えてください
 
+  - 1.9-1 @ Mdk 1.9-12.16.0.1767-1.9
+    - Minecraft 1.9 に対応
+    - コンフィグのファイル名を Mod名.cfg から ModID.cfg に変更
   - 1.8.9-1 @ Mdk 1.8.9-11.15.0.1694
     - Minecraft 1.8.9 に対応
   - 1.8-1 @ Mdk 1.8-11.14.4.1577
@@ -73,6 +76,6 @@ RL minecraft:golden_sword
 
 ---------------
 
-ご意見,ご要望,バグ報告などありましたら Issue か下記の連絡手段でお願いします
-  - <man.of.j@outlook.com>
-  - [Twitter: _ManOfJ](https://twitter.com/_ManOfJ)
+ご意見,ご要望,バグ報告などありましたら [Issue](https://github.com/ManOfJ/ExampleMod/issues) か下記の連絡手段でお願いします
+  - E-mail: <man.of.j@outlook.com>
+  - Twitter: [_ManOfJ](https://twitter.com/_ManOfJ)
