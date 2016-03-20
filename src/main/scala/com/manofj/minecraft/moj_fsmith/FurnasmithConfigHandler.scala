@@ -84,7 +84,7 @@ object FurnasmithConfigHandler {
   private[ moj_fsmith ] def captureConfig( cfgDir: JFile ): Unit = {
     configDirectory = Option( cfgDir )
     config = configDirectory map { dir =>
-      val cfgFile = new JFile( dir, s"$NAME.cfg" )
+      val cfgFile = new JFile( dir, s"$MOD_ID.cfg" )
       new Configuration( cfgFile )
     }
     syncConfig( true )
