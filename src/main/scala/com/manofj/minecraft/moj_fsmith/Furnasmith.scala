@@ -7,13 +7,12 @@ import scala.language.existentials
 import org.apache.logging.log4j.{ LogManager, Logger }
 
 import net.minecraft.item.{ Item, ItemBlock, ItemStack }
-import net.minecraft.util.{ ResourceLocation, StatCollector }
+import net.minecraft.util.ResourceLocation
 
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.event.{ FMLPostInitializationEvent, FMLPreInitializationEvent }
-import net.minecraftforge.fml.common.registry.GameData
 
 import com.manofj.minecraft.moj_fsmith.FurnasmithConfigHandler.keep_enchantment
 import com.manofj.minecraft.moj_fsmith.FurnasmithExtractor.{ Blacklist, Repairable }
@@ -78,9 +77,9 @@ object Furnasmith {
   @EventHandler
   def postInit( evt: FMLPostInitializationEvent ): Unit = {
     if ( FurnasmithConfigHandler.allow_log_output ) {
-      import StatCollector.{translateToLocal => i18n}
+      import net.minecraft.client.resources.I18n.{ format => i18n }
 
-      import GameData.{getItemRegistry => itemRegistry}
+      import net.minecraftforge.fml.common.registry.GameData.{ getItemRegistry => itemRegistry }
 
       // すべてのブロックではないアイテムの情報をログに出力
       log.info( "*" * 64 )
