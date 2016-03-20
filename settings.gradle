@@ -11,11 +11,24 @@ def newLineMap = [
 gradle.settingsEvaluated {
   gradle.rootProject {
     ext {
+      // Minecraft Forge に関する設定の集合
+      forge = [
+        // Forge Gradle に関する設定の集合
+        gradle: [
+          // スナップショット版を使用するか否か
+          useSnapshot: true
+        ],
+
+        // 開発に使用する Minecraft Forge のバージョン
+        // mcmod.info.mcversion にて参照されるので間接的に設定必須項目
+        version: '1.9-12.16.0.1767-1.9',
+
+        // マッパーのバージョン
+        mappings: 'snapshot_20160312'
+      ]
+
       // JVM で動くプログラミング言語一覧
       jvmLanguages = [ 'java', 'scala', 'groovy', 'kotlin' ]
-
-      // Forge Gradle のスナップショット版を使用するか否か
-      useSnapshotForgeGradle = true
 
       // 使用する Kotlin のバージョン
       // Maven リポジトリから Kotlin を取得する際に参照される
@@ -52,6 +65,10 @@ gradle.settingsEvaluated {
           // true にするとバージョンの末尾に '-SNAPSHOT' が付与される
           snapshot: false,
 
+          // Mod が属する基本パッケージ
+          // 設定しない場合は mcmod.build.jar.groupId の値が参照される
+          package: '',
+
 
           // Maven に関する設定の集合
           maven: [
@@ -77,8 +94,12 @@ gradle.settingsEvaluated {
 
           // この Mod が依存するライブラリとそのスコープに関する設定
           dependencies: [
-            // TODO: ドキュメント記述
-            /* compile */:/* [ 'groupId:artifactId:version', '...' ] */
+            // スコープに紐付く依存ライブラリ一覧を記述する
+            // スコープに関しては下記のURLを参照
+            // http://www.techscore.com/tech/Java/ApacheJakarta/Maven/3/#maven-3-1-1
+            // 例)
+            // compile: [ 'groupId:artifactId:version', '...' ]
+            :
           ],
 
 
@@ -136,7 +157,7 @@ gradle.settingsEvaluated {
 
           // この Mod の開発に使用する Forge のバージョン
           // 設定必須項目
-          mcversion: '1.8.9-11.15.0.1694',
+          mcversion: forge.version,
 
           // この Mod を配布している Web サイトの URL
           url: '',
@@ -186,6 +207,12 @@ gradle.settingsEvaluated {
     assert info?.name?.trim()
     assert info?.version?.trim()
     assert info?.mcversion?.trim()
+
+    // jar ファイルのベース名称を設定
+    if ( !bild.jar.baseName?.trim() ) bild.jar.baseName = info.name
+
+    // 開発中であればバージョン文字列に '-SNAPSHOT' 修飾子を付与する
+    if ( bild.snapshot ) info.version += '-SNAPSHOT'
 
   }
 
