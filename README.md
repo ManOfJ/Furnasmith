@@ -1,7 +1,7 @@
 Furnasmith - [Minecraft Mod](http://manofj.com/minecraft/)
 ===============================
 
-Version 1.9-1
+Version 1.9-2
 ![IMAGE](http://i.imgur.com/aNZ2q0F.gif "")
 
 0. 既知の不具合
@@ -59,6 +59,8 @@ RL minecraft:golden_sword
     バージョンの後ろに表記されている Mdk のバージョンは開発に使用したものです
     このバージョンでなければ動作しない､ということはないのであくまで参考程度に考えてください
 
+  - 1.9-2 @ Mdk 1.9-12.16.1.1891
+    - Minecraft Forge 1.9-12.16.0.1886 以降に対応
   - 1.9-1 @ Mdk 1.9-12.16.0.1767-1.9
     - Minecraft 1.9 に対応
     - コンフィグのファイル名を Mod名.cfg から ModID.cfg に変更
