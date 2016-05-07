@@ -9,7 +9,7 @@ def b = bild
 project.configure( i ) {
   modid      = 'moj_fsmith'
   name       = 'Furnasmith'
-  version    = '1.9-1'
+  version    = '1.9-2'
   url        = "http://manofj.com/minecraft"
   updateUrl  = "http://manofj.com/minecraft/update?v=${ i.name }"
   authorList = [ 'Man of J' ]

@@ -21,7 +21,7 @@ gradle.settingsEvaluated {
 
         // 開発に使用する Minecraft Forge のバージョン
         // mcmod.info.mcversion にて参照されるので間接的に設定必須項目
-        version: '1.9-12.16.0.1767-1.9',
+        version: '1.9-12.16.1.1891',
 
         // マッパーのバージョン
         mappings: 'snapshot_20160312'
