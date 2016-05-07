@@ -50,7 +50,7 @@ object FurnasmithConfigHandler {
       var prop  = null: Property
 
       prop = cfg.get( CONFIG_ID, "allow_log_output", false )
-      prop.comment = i18n( "moj_fsmith.config.allow_log_output.tooltip" )
+      prop.setComment( i18n( "moj_fsmith.config.allow_log_output.tooltip" ) )
       prop.setLanguageKey( "moj_fsmith.config.allow_log_output" )
       order add prop.getName
       alOutput = prop.getBoolean
@@ -58,7 +58,7 @@ object FurnasmithConfigHandler {
       Furnasmith.log.debug( s"Bind allow_log_output: $alOutput" )
 
       prop = cfg.get( CONFIG_ID, "repair_condition", 50.0 )
-      prop.comment = i18n( "moj_fsmith.config.repair_condition.tooltip" )
+      prop.setComment( i18n( "moj_fsmith.config.repair_condition.tooltip" ) )
       prop.setLanguageKey( "moj_fsmith.config.repair_condition" )
       order add prop.getName
       rCondition = prop.getDouble
@@ -66,7 +66,7 @@ object FurnasmithConfigHandler {
       Furnasmith.log.debug( s"Bind repair_condition: $rCondition" )
 
       prop = cfg.get( CONFIG_ID, "keep_enchantment", true )
-      prop.comment = i18n( "moj_fsmith.config.keep_enchantment.tooltip" )
+      prop.setComment( i18n( "moj_fsmith.config.keep_enchantment.tooltip" ) )
       prop.setLanguageKey( "moj_fsmith.config.keep_enchantment" )
       order add prop.getName
       kEnchantment = prop.getBoolean
@@ -105,7 +105,7 @@ object FurnasmithConfigHandler {
   @SubscribeEvent
   def onConfigChanged( evt: OnConfigChangedEvent ): Unit = {
     import evt._
-    if ( modID == MOD_ID && configID == CONFIG_ID ) {
+    if ( getModID == MOD_ID && getConfigID == CONFIG_ID ) {
       syncConfig( false )
     }
   }

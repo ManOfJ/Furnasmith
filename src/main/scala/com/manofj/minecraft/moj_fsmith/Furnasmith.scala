@@ -7,7 +7,6 @@ import scala.language.existentials
 import org.apache.logging.log4j.{ LogManager, Logger }
 
 import net.minecraft.item.{ Item, ItemBlock, ItemStack }
-import net.minecraft.util.ResourceLocation
 
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Mod
@@ -79,22 +78,24 @@ object Furnasmith {
     if ( FurnasmithConfigHandler.allow_log_output ) {
       import net.minecraft.client.resources.I18n.{ format => i18n }
 
-      import net.minecraftforge.fml.common.registry.GameData.{ getItemRegistry => itemRegistry }
+      import net.minecraft.item.Item.itemRegistry
 
       // すべてのブロックではないアイテムの情報をログに出力
       log.info( "*" * 64 )
       log.info( "Item Name,Class Name,SuperClass Name,Resource Location" )
-      itemRegistry.getKeys foreach {
-        case loc: ResourceLocation => itemRegistry.getObject( loc ) match {
-          case block: ItemBlock => // skip
-          case item: Item       =>
-            val iName  = i18n( s"${ item.getUnlocalizedName }.name" )
-            val clazz  = item.getClass
-            val sClass = clazz.getSuperclass
-            log.info( s"$iName,${ clazz.getName },${ sClass.getName },${ loc.toString }" )
-        }
-        case any => // skip
+
+      itemRegistry.getKeys.map( itemRegistry.getObject ) foreach {
+        case block: ItemBlock => // skip
+        case item: Item       =>
+          val iName  = i18n( s"${ item.getUnlocalizedName }.name" )
+          val clazz  = item.getClass
+          val sClass = clazz.getSuperclass
+          val rName  = item.getRegistryName
+
+          item.getRegistryName
+          log.info( s"$iName,${ clazz.getName },${ sClass.getName },${ rName.toString }" )
       }
+
       log.info( "*" * 64 )
     }
 
