@@ -1,28 +1,21 @@
 package com.manofj.minecraft.moj_fsmith
 
-import java.io.{ File => JFile }
-import java.util.Collections
 
 import com.google.common.collect.Lists
 
 import net.minecraft.client.resources.I18n.{ format => i18n }
 
-import net.minecraftforge.common.config.{ ConfigElement, Configuration, Property }
-import net.minecraftforge.fml.client.config.IConfigElement
-import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.common.config.Property
+
+import com.manofj.minecraft.moj_commons.config.ConfigGuiHandler
 
 
 /**
   * Furnasmith-Mod のコンフィグハンドラ
   */
-object FurnasmithConfigHandler {
-  final val CONFIG_ID = Configuration.CATEGORY_GENERAL
-
-
-  private[ this ] var configDirectory = Option.empty[ JFile ]
-
-  private[ this ] var config = Option.empty[ Configuration ]
+object FurnasmithConfigHandler
+  extends ConfigGuiHandler
+{
 
   private[ this ] var alOutput = false
 
@@ -41,72 +34,44 @@ object FurnasmithConfigHandler {
   private[ moj_fsmith ] def keep_enchantment = kEnchantment
 
 
-  // コンフィグの読み込み､変数への反映処理などを行う
-  private[ this ] def syncConfig( load: Boolean ): Unit = config match {
-    case Some( cfg ) =>
-      if ( load && !cfg.isChild ) cfg.load()
+  override def modId: String = MOD_ID
 
-      val order = Lists.newArrayList[ String ]
-      var prop  = null: Property
+  override def title: String = i18n( "moj_fsmith.config.gui.title" )
 
-      prop = cfg.get( CONFIG_ID, "allow_log_output", false )
-      prop.setComment( i18n( "moj_fsmith.config.allow_log_output.tooltip" ) )
-      prop.setLanguageKey( "moj_fsmith.config.allow_log_output" )
-      order add prop.getName
-      alOutput = prop.getBoolean
+  override def syncConfig( load: Boolean ): Unit = {
+    val cfg = config
 
-      Furnasmith.log.debug( s"Bind allow_log_output: $alOutput" )
+    if ( load && !cfg.isChild ) cfg.load()
 
-      prop = cfg.get( CONFIG_ID, "repair_condition", 50.0 )
-      prop.setComment( i18n( "moj_fsmith.config.repair_condition.tooltip" ) )
-      prop.setLanguageKey( "moj_fsmith.config.repair_condition" )
-      order add prop.getName
-      rCondition = prop.getDouble
+    val order = Lists.newArrayList[ String ]
+    var prop  = null: Property
 
-      Furnasmith.log.debug( s"Bind repair_condition: $rCondition" )
+    prop = cfg.get( configId, "allow_log_output", false )
+    prop.setComment( i18n( "moj_fsmith.config.allow_log_output.tooltip" ) )
+    prop.setLanguageKey( "moj_fsmith.config.allow_log_output" )
+    order add prop.getName
+    alOutput = prop.getBoolean
 
-      prop = cfg.get( CONFIG_ID, "keep_enchantment", true )
-      prop.setComment( i18n( "moj_fsmith.config.keep_enchantment.tooltip" ) )
-      prop.setLanguageKey( "moj_fsmith.config.keep_enchantment" )
-      order add prop.getName
-      kEnchantment = prop.getBoolean
+    Furnasmith.log.debug( s"Bind allow_log_output: $alOutput" )
 
-      Furnasmith.log.debug( s"Bind keep_enchantment: $kEnchantment" )
+    prop = cfg.get( configId, "repair_condition", 50.0 )
+    prop.setComment( i18n( "moj_fsmith.config.repair_condition.tooltip" ) )
+    prop.setLanguageKey( "moj_fsmith.config.repair_condition" )
+    order add prop.getName
+    rCondition = prop.getDouble
 
-      cfg.setCategoryPropertyOrder( CONFIG_ID, order )
+    Furnasmith.log.debug( s"Bind repair_condition: $rCondition" )
 
-      if ( cfg.hasChanged ) cfg.save()
-    case None        =>
-      Furnasmith.log.warn( "Config is not bind to FurnasmithConfigHandler." )
-  }
+    prop = cfg.get( configId, "keep_enchantment", true )
+    prop.setComment( i18n( "moj_fsmith.config.keep_enchantment.tooltip" ) )
+    prop.setLanguageKey( "moj_fsmith.config.keep_enchantment" )
+    order add prop.getName
+    kEnchantment = prop.getBoolean
 
-  // コンフィグファイルの取得､ローカル変数へのバインドを行う
-  private[ moj_fsmith ] def captureConfig( cfgDir: JFile ): Unit = {
-    configDirectory = Option( cfgDir )
-    config = configDirectory map { dir =>
-      val cfgFile = new JFile( dir, s"$MOD_ID.cfg" )
-      new Configuration( cfgFile )
-    }
-    syncConfig( true )
-  }
+    Furnasmith.log.debug( s"Bind keep_enchantment: $kEnchantment" )
 
-  private[ moj_fsmith ] def configElements = config match {
-    case Some( cfg ) =>
-      val cat = cfg.getCategory( CONFIG_ID )
-      new ConfigElement( cat ).getChildElements
-    case None        =>
-      Furnasmith.log.warn( "Config is not bind to FurnasmithConfigHandler." )
-      Collections.emptyList[ IConfigElement ]
-  }
+    cfg.setCategoryPropertyOrder( configId, order )
 
-  // コンフィグディレクトリを返す
-  def configDir = configDirectory
-
-  @SubscribeEvent
-  def onConfigChanged( evt: OnConfigChangedEvent ): Unit = {
-    import evt._
-    if ( getModID == MOD_ID && getConfigID == CONFIG_ID ) {
-      syncConfig( false )
-    }
+    if ( cfg.hasChanged ) cfg.save()
   }
 }

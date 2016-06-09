@@ -9,7 +9,7 @@ import org.apache.logging.log4j.{ LogManager, Logger }
 import net.minecraft.item.{ Item, ItemBlock, ItemStack }
 
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.common.{ Loader, Mod }
 import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.event.{ FMLPostInitializationEvent, FMLPreInitializationEvent }
 
@@ -67,9 +67,11 @@ object Furnasmith {
 
   @EventHandler
   def preInit( evt: FMLPreInitializationEvent ): Unit = {
+    import com.manofj.minecraft.moj_commons.config.javaFile2ForgeConfig
+    
     loggerOpt = Option( evt.getModLog )
 
-    FurnasmithConfigHandler.captureConfig( evt.getModConfigurationDirectory )
+    FurnasmithConfigHandler.captureConfig( evt.getSuggestedConfigurationFile )
     MinecraftForge.EVENT_BUS.register( FurnasmithConfigHandler )
   }
 
@@ -100,7 +102,7 @@ object Furnasmith {
     }
 
     // 外部ファイルから修復可能･不可能リストを設定する
-    FurnasmithConfigHandler.configDir foreach { dir =>
+    Option( Loader.instance().getConfigDir ) foreach { dir =>
       Blacklist.loadConditions( dir )
       Repairable.loadConditions( dir )
     }
