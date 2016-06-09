@@ -80,7 +80,7 @@ object Furnasmith {
     if ( FurnasmithConfigHandler.allow_log_output ) {
       import net.minecraft.client.resources.I18n.{ format => i18n }
 
-      import net.minecraft.item.Item.itemRegistry
+      import net.minecraft.item.Item.{ REGISTRY => itemRegistry }
 
       // すべてのブロックではないアイテムの情報をログに出力
       log.info( "*" * 64 )
