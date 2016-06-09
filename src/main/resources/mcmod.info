@@ -1,22 +1,22 @@
 [
-{
-    "modid": "moj_fsmith",
-    "name": "Furnasmith",
-    "description": "",
-    "version": "1.9-2",
-    "mcversion": "1.9-12.16.1.1891",
-    "url": "http://manofj.com/minecraft",
-    "updateUrl": "http://manofj.com/minecraft/update?v=Furnasmith",
-    "authorList": [
-        "Man of J"
-    ],
-    "credits": "",
-    "logoFile": "",
-    "screenshots": [
-        
-    ],
-    "dependencies": [
-        
-    ]
-}
+    {
+        "modid": "@modid@",
+        "name": "Furnasmith",
+        "description": "",
+        "version": "@version@",
+        "mcversion": "1.9.4-12.17.0.1940",
+        "url": "http://manofj.com/minecraft",
+        "updateUrl": "http://manofj.com/minecraft/update?v=Furnasmith",
+        "authorList": [
+            "Man of J"
+        ],
+        "credits": "",
+        "logoFile": "",
+        "screenshots": [
+            
+        ],
+        "dependencies": [
+            
+        ]
+    }
 ]
