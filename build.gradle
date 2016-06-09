@@ -1,301 +1,209 @@
+// TODO: アーカイブ生成の挙動を改善
 
-// Forge Gradle プラグインのロードを行い
-// 必要であれば Kotlin プラグインもロードする
+
+// ビルドスクリプトの実行
 buildscript {
-  repositories {
-    if ( !forge.gradle.useSnapshot )
-      maven { url 'https://plugins.gradle.org/m2/' }
-    else
-    {
-      jcenter()
-      maven {
-        name 'forge'
-        url  'http://files.minecraftforge.net/maven'
-      }
-    }
-
-    if_kotlinProject { mavenCentral() }
+  settings.buildscript.repositories.each { function ->
+    function.delegate = repositories
+    function.call()
   }
-  dependencies {
-    if ( !forge.gradle.useSnapshot )
-      classpath 'gradle.plugin.net.minecraftforge.gradle:ForgeGradle:2.0.2'
-    else
-      classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
-
-    if_kotlinProject
-    {
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-    }
-  }
-}
-apply plugin: 'net.minecraftforge.gradle.forge'
-// 開発言語に Kotlin が指定されていれば
-// プラグインのロード, 使用するライブラリの登録などを行う
-if_kotlinProject {
-  apply plugin: 'kotlin'
-
-  bild.with {
-    // ライブラリ取得のためセントラルリポジトリを参照
-    maven.repositories.central = true
-
-    if ( dependencies.compile )
-      dependencies.compile += kotlinLibraries
-    else
-      dependencies.compile  = kotlinLibraries
+  settings.buildscript.dependencies.each { function ->
+    function.delegate = dependencies
+    function.call()
   }
 }
 
+// プラグインのロードを行う
+settings.build.plugins.each { apply plugin: it }
 
-// 基本情報の設定
-group            = bild.jar.groupId
-archivesBaseName = bild.jar.baseName
-version          = info.version
 
-// Forge 環境の設定
+// Modの基本設定
+group            = settings.build.jar.groupId
+archivesBaseName = settings.build.jar.baseName
+version          = settings.mod.version
+
+// Forgeの基本設定
 minecraft {
-  version          = forge.version
-  runDir           = 'run'
-  mappings         = forge.mappings
-  makeObfSourceJar = false
+  version          = settings.forge.version
+  mappings         = settings.forge.mappings
+  runDir           = settings.forge.runDirectory
+  makeObfSourceJar = settings.build.jar.makeArchive.source
 }
 
 // コンパイルタスクの設定
 tasks.withType( AbstractCompile ) {
-  sourceCompatibility = bild.languageLevel
-  targetCompatibility = bild.languageLevel
+  sourceCompatibility = settings.build.languageLevel
+  targetCompatibility = settings.build.languageLevel
 
-  if ( hasProperty( 'options' ) ) { options.encoding = bild.encoding }
+  if ( hasProperty( 'options' ) )
+    options.encoding = settings.build.encoding
 }
 
-// リポジトリの設定
-repositories {
-  def repoOpt = bild.maven.repositories
-
-  if ( repoOpt.central ) { mavenCentral() }
-  if ( repoOpt.local )   { mavenLocal()   }
-  if ( repoOpt.jcenter ) { jcenter()      }
-
-  repoOpt.url?.each { x -> maven { url "$x" } }
+// 依存関係解決に関する設定
+settings.build.repositories.each { function ->
+  function.delegate = repositories
+  function.call()
+}
+settings.build.dependencies.each { function ->
+  function.delegate = dependencies
+  function.call()
 }
 
-// 依存関係の設定
-bild.dependencies.each { k, v ->
-  dependencies."$k" v
-}
 
-// jar のアトリビュートを設定
-jar.manifest.attributes = bild.jar.manifest.attributes
+// jarマニフェストファイルの設定
+jar.manifest.attributes = settings.build.jar.manifest.attributes
 
 
-// タスク定義･事前準備 ********************************
 
 
-// Furge-Gradle ソースコピー･タスクをインポート
+
+import groovy.json.JsonBuilder
+import org.apache.tools.ant.filters.ReplaceTokens
 import net.minecraftforge.gradle.user.TaskSourceCopy
 
-// メインのソースセットを拡張プロパティにバインド
-project.ext.mainSourceSet = sourceSets.main
+// 独自のタスク定義を行う
+{ ->
 
-// オブジェクトのすべての要素を文字列型に変換する関数群
-def e2s( Map    obj ) { obj.collectEntries { k, v -> [ "$k": e2s( v ) ] } }
-def e2s( List   obj ) { obj.collect { e2s( it ) }                         }
-def e2s( Object obj ) { String.valueOf( obj )                             }
+  def modLanguage       = settings.build.language
+  def cptlzdModLanguage = modLanguage.capitalize()
 
-// mcmod.info に記述される内容を返すクロージャ
-def genMcmodInfoText = {
-  def jb = new groovy.json.JsonBuilder( e2s( info ) )
-  "[$eol${ jb.toPrettyString() }$eol]"
-}
+  sourceSets.all { sourceSet ->
+    def sourceSetName       = sourceSet.name
+    def cptlzdSourceSetName = sourceSetName.capitalize()
 
+    // ソースコピータスクが定義されていなければ新規に定義する
+    def sourceCopyTaskName  = "source$cptlzdSourceSetName$cptlzdModLanguage"
+    if ( !tasks.findByPath( sourceCopyTaskName ) ) {
+      task "$sourceCopyTaskName"( type: TaskSourceCopy ) {
+        source = sourceSet[ modLanguage ]
+        output = project.file( "$buildDir/sources/$sourceSetName/$modLanguage" )
+      }
 
-// タスク定義 ********************************
+      def sourceCopyTask = tasks."$sourceCopyTaskName"
+      def compileTask    = tasks."${ sourceSet.getCompileTaskName( modLanguage ) }"
 
-
-// メインのソースディレクトリを作成するタスク
-task makeMainSourceDirs {
-  // 作成対象となるディレクトリ一覧を定義
-  ext.sourceDirs = mainSourceSet.allSource.srcDirs
-
-  // setupDecompWorkspace が失敗していなければ処理を実行
-  onlyIf { setupDecompWorkspace.state.failure == null }
-
-  // 作成対象となるディレクトリがすでに存在していれば処理をスキップ
-  outputs.files project.files( sourceDirs )
-
-  doLast { sourceDirs.each project.&mkdir }
-}
-
-// Mod の基本パッケージを作成するタスク
-task makePackage( dependsOn: makeMainSourceDirs ) {
-  ext {
-    // 出力先ディレクトリ ( ソースディレクトリ ) 一覧を定義
-    destinationDirs = mainSourceSet."${ bild.language }".srcDirs
-
-    // 作成対象となるパッケージ一覧を返すクロージャ
-    packages = {
-      def pkg = bild.package?.trim() ?: bild.jar.groupId
-      destinationDirs.collect { project.file( "$it/${ pkg.replace( '.', '/' ) }" ) }
-    }
-  }
-
-  // makeMainSourceDirs が失敗していなければ処理を実行
-  onlyIf { makeMainSourceDirs.state.failure == null }
-
-  // 作成対象となるパッケージがすでに存在していれば処理をスキップ
-  outputs.files project.files( packages() )
-
-  doLast { packages().each project.&mkdir }
-}
-
-// アセットディレクトリを作成するタスク
-task makeAssetsDir( dependsOn: makeMainSourceDirs ) {
-  ext {
-    // 出力先ディレクトリ ( ソースディレクトリ ) 一覧を定義
-    destinationDirs = mainSourceSet.resources.srcDirs
-
-    // 作成対象となるディレクトリ一覧を返すクロージャ
-    assetsDirs = {
-      destinationDirs.collect { project.file( "$it/assets/${ info.modid }" ) }
-    }
-  }
-
-  // makeMainSourceDirs が失敗していなければ処理を実行
-  onlyIf { makeMainSourceDirs.state.failure == null }
-
-  // 作成対象となるディレクトリがすでに存在していれば処理をスキップ
-  outputs.files project.files( assetsDirs() )
-
-  doLast { assetsDirs().each project.&mkdir }
-}
-
-// mcmod.info ファイルを出力するタスク
-task genMcmodInfo {
-  // 実行されるタスクに makeMainSourceDirs も指定されている場合
-  // このタスクは makeMainSourceDirs よりも後に実行される
-  mustRunAfter makeMainSourceDirs
-
-  ext {
-    // 出力先ディレクトリ ( ソースディレクトリ ) 一覧を定義
-    destinationDirs = mainSourceSet.resources.srcDirs
-
-    // 出力ファイル一覧を返すクロージャ
-    outputFiles = {
-      destinationDirs.collect { project.file( "$it/mcmod.info" ) }
-    }
-  }
-
-  // setupDecompWorkspace が失敗していなければ処理を実行
-  onlyIf { setupDecompWorkspace.state.failure == null }
-
-  // mcmod.info の内容に変更があれば処理を実行
-  inputs.property 'mcmod_info', genMcmodInfoText
-
-  // 作成対象となるファイルが存在しなければ処理を実行
-  outputs.files project.files( outputFiles() )
-
-  doLast {
-    def infoText = genMcmodInfoText()
-    outputFiles()*.text = infoText
-  }
-}
-
-// 各プログラミング言語のソースコピータスクの存在をチェック
-// 定義されていなければ新規に定義する
-jvmLanguages.findAll { hasPlugin( it ) } each { lang ->
-  if ( mainSourceSet[ lang ] ) {
-    def sourceCopyTaskName = "sourceMain${ lang.capitalize() }"
-    if ( hasTask( sourceCopyTaskName ) ) return
-
-    task "$sourceCopyTaskName"( type: TaskSourceCopy ) {
-      setSource mainSourceSet[ lang ]
-      setOutput project.file( "$buildDir/sources/$lang" )
+      compileTask.dependsOn sourceCopyTask
+      compileTask.source = project.fileTree( sourceCopyTask.output )
     }
 
-    def sourceCopyTask  = tasks."$sourceCopyTaskName"
-    def compileTaskName = mainSourceSet.getCompileTaskName( lang )
-    def compileTask     = tasks."$compileTaskName"
-    compileTask.dependsOn sourceCopyTask
-    compileTask.source = project.fileTree( sourceCopyTask.output )
-  }
-}
+    if ( sourceSetName == 'main' ) {
+      // ソースコードディレクトリを作成する
+      task makeMainSourceDirs {
+        ext.sourceDirs = sourceSet.allSource.srcDirs
 
-// ソースコードのアーカイブを出力するタスクを定義
-if ( bild.jar.archive.source ) {
-  task sourcesJar( type: Jar, dependsOn: [ processResources ] ) {
-    classifier = 'sources'
-    from processResources.destinationDir
-  }
+        outputs.files project.files( sourceDirs )
 
-  // 各プログラミング言語のソースを読み込むようにする
-  jvmLanguages.findAll { hasPlugin( it ) } each { lang ->
-    def sourceCopyTaskName = "sourceMain${ lang.capitalize() }"
-    if ( !hasTask( sourceCopyTaskName ) ) return
+        doLast { sourceDirs.each project.&mkdir }
+      }
 
-    def sourceCopyTask = tasks."$sourceCopyTaskName"
-    sourcesJar.dependsOn sourceCopyTask
-    sourcesJar.from sourceCopyTask.output
-  }
+      // 基本パッケージを作成する
+      task makeBasePackage( dependsOn: makeMainSourceDirs ) {
+        ext {
+          destinationDirs = sourceSet."$modLanguage".srcDirs
+          paths = {
+            def basePackage = settings.mod.basePackage.replace( '.', '/' )
+            destinationDirs.collect { project.file( "$it/$basePackage" ) }
+          }
+        }
 
-  // Forge Gradle の sourceJar と同じように依存関係を設定
-  assemble.dependsOn sourcesJar
-  if ( hasPlugin( 'maven' ) ) {
-    uploadArchives.dependsOn sourcesJar
-  }
+        outputs.files project.files( paths() )
 
-  // sourcesJar タスクを有効にする
-  artifacts.archives sourcesJar
-}
+        doLast { paths().each project.&mkdir }
+      }
 
-// ドキュメントのアーカイブを出力するタスクを定義
-if ( bild.jar.archive.document ) {
-  def language           = bild.language
-  def docTaskName        = "${ language }doc"
-  def sourceCopyTaskName = "sourceMain${ language.capitalize() }"
+      // Modのアセットディレクトリを作成する
+      task makeAssetsDir( dependsOn: makeMainSourceDirs ) {
+        ext {
+          destinationDirs = sourceSet.resources.srcDirs
+          paths = { destinationDirs.collect { project.file( "$it/assets/${ settings.mod.id }" ) } }
+        }
 
-  // 開発に使用する言語のドキュメント生成タスクと
-  // ソースコピータスクが定義されていれば
-  // その言語のドキュメントアーカイブ生成タスクを定義する
-  if ( hasTask( docTaskName ) && hasTask( sourceCopyTaskName ) ) {
-    def docTask        = tasks."$docTaskName"
-    def docJarTaskName = "${ docTaskName }Jar"
-    def sourceCopyTask = tasks."$sourceCopyTaskName"
+        outputs.files project.files( paths() )
 
-    task "$docJarTaskName"( type: Jar, dependsOn: docTask ) {
-      classifier = docTaskName
-      from docTask.destinationDir
+        doLast { paths().each project.&mkdir }
+      }
+
+      // mcmod.infoファイルを生成する
+      task genMcmodInfo( dependsOn: makeMainSourceDirs ) {
+        ext {
+          destinationDirs = sourceSet.resources.srcDirs
+          paths = { destinationDirs.collect { project.file( "$it/mcmod.info" ) } }
+        }
+
+        inputs.property 'info', settings.mod.info
+
+        outputs.files project.files( paths() )
+
+        doLast {
+          def json = new JsonBuilder()
+          def data = settings.mod.info()
+
+          data += [ modid: '@modid@', version: '@version@' ]
+          json( [ data ] )
+          def text = json.toPrettyString()
+
+          paths()*.text = text
+        }
+      }
     }
 
-    docTask.source = project.fileTree( sourceCopyTask.output )
-    // docJar タスクを有効にする
-    artifacts.archives tasks."$docJarTaskName"
   }
-  // 条件を満たしていなければ javadoc の
-  // アーカイブドキュメント生成タスクを定義する
-  else if ( hasTask( 'javadoc' ) && hasTask( 'sourceMainJava' ) ) {
+
+
+  def documentTaskName = "${ modLanguage }doc"
+  if ( tasks.findByPath( documentTaskName ) ) {
+    // 言語に対応するドキュメント生成タスクが存在する場合、
+    // 専用のアーカイブ生成タスクを新規に定義する
+
+    def documentTask = tasks."$documentTaskName"
+    def docJarTaskName = "${ documentTaskName }Jar"
+
+    task "$docJarTaskName"( type: Jar, dependsOn: documentTask ) {
+      classifier = documentTaskName
+      from documentTask.destinationDir
+    }
+
+    if ( settings.build.jar.makeArchive.document )
+      artifacts.archives tasks."$docJarTaskName"
+  }
+  else {
+    // 言語に対応するドキュメント生成タスクが存在しない場合、
+    // 汎用のアーカイブ生成タスクを新規に定義する
+
     task javadocJar( type: Jar, dependsOn: javadoc ) {
       classifier = 'javadoc'
       from javadoc.destinationDir
     }
 
-    // javadoc の生成を行うソースを指定
-    javadoc.source = project.fileTree( sourceMainJava.output )
-    // javadocJar タスクを有効にする
-    artifacts.archives javadocJar
+    javadoc.source = sourceSets.main.allJava
+
+    if ( settings.build.jar.makeArchive.document )
+      artifacts.archives javadocJar
+  }
+
+
+  // 言語固有のタスク定義をロードする
+  def build_for_language = project.file( "build_${ modLanguage }.gradle" )
+  if ( build_for_language.exists() )
+    apply from: build_for_language
+
+}()
+
+
+// リソースファイルのコピー時に変数展開を行う
+processResources {
+  inputs.property 'modid',   settings.mod.id
+  inputs.property 'version', settings.mod.version
+
+  from( sourceSets.main.resources.srcDirs ) {
+    include 'mcmod.info'
+    filter( ReplaceTokens, tokens: replaceTokens() )
+  }
+
+  from( sourceSets.main.resources.srcDirs ) {
+    exclude 'mcmod.info'
   }
 }
 
-
-// タスクの設定を調整 ********************************
-
-
-// リソースファイルコピー前に mcmod.info を生成するように設定
-processResources.dependsOn genMcmodInfo
-
-// 開発環境構築処理の最後に
-// 基本パッケージ/アセットディレクトリ/mcmod.info を生成するように設定
-setupDecompWorkspace.finalizedBy makePackage,
-                                 makeAssetsDir,
-                                 genMcmodInfo
-
-// ソースコードコピー･タスクに変数展開用の辞書をセットする
+// ソースコードコピー時の変数展開で参照される辞書を追加
 tasks.withType( TaskSourceCopy )*.replace( replacements() )

@@ -1,0 +1,34 @@
+
+// 基本パッケージとそのパッケージオブジェクト
+// アセットディレクトリ、mcmod.info、デフォルトの言語ファイル( en_US.lang )を生成する
+task startupScalaProject( dependsOn: [ makeBasePackage, makeAssetsDir, genMcmodInfo ] ) {
+  ext {
+    packageObject = { makeBasePackage.paths().collect { project.file( "$it/package.scala" ) } }
+    languageDir = { makeAssetsDir.paths().collect { project.file( "$it/lang" ) } }
+  }
+
+  outputs.files project.files( packageObject() )
+  outputs.files project.files( languageDir() )
+
+  doLast {
+    packageObject().each { file ->
+      file.text =
+        """|package ${ settings.mod.basePackage }
+           |
+           |package object ${ settings.mod.id } {
+           |  final val ID       = \"@modid@\"
+           |  final val NAME     = \"${ settings.mod.name }\"
+           |  final val VERSION  = \"@version@\"
+           |  final val LANGUAGE = \"scala\"
+           |}
+           |""".stripMargin()
+    }
+
+    languageDir().each { dir ->
+      project.mkdir( dir )
+
+      def file = project.file( "$dir/en_US.lang" )
+      file.createNewFile()
+    }
+  }
+}

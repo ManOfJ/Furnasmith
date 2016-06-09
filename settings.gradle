@@ -1,193 +1,170 @@
 
-// 文字列に紐付けられた改行コード一覧
-def newLineMap = [
-  default: System.properties[ 'line.separator' ],
-  cr:      '\r',
-  lf:      '\n',
-  crlf:    '\r\n'
-]
-
-// 独自設定の定義とユーザの設定した値の反映を行う
+// Gradleの設定が完了した後の処理
+// 独自の設定項目を追加し､ユーザの設定した値を反映する
 gradle.settingsEvaluated {
   gradle.rootProject {
     ext {
-      // Minecraft Forge に関する設定の集合
-      forge = [
-        // Forge Gradle に関する設定の集合
-        gradle: [
-          // スナップショット版を使用するか否か
-          useSnapshot: true
+      // 独自の設定項目を追加
+      settings = [
+        // 独自定義のタスクにより出力されるファイルの改行コードを指定する
+        // 有効な改行コード一覧 [ '\r', '\n', '\r\n', System.properties[ 'line.separator' ] ]
+        lineSeparator: '\n',
+
+        // Minecraft Forge関連の設定
+        forge: [
+          // 開発に使用するMinecraft Forgeのバージョン
+          // 必須項目
+          version: '',
+
+          // 開発環境での実行ディレクトリ
+          runDirectory: 'run',
+
+          // マッパーのバージョン
+          // 必須項目
+          mappings: '',
+
+          // Forge Gradleが定義するソースアーカイブ出力タスクを実行するか否か
+          makeSourceJar: false
         ],
 
-        // 開発に使用する Minecraft Forge のバージョン
-        // mcmod.info.mcversion にて参照されるので間接的に設定必須項目
-        version: '1.9-12.16.1.1891',
-
-        // マッパーのバージョン
-        mappings: 'snapshot_20160312'
-      ]
-
-      // JVM で動くプログラミング言語一覧
-      jvmLanguages = [ 'java', 'scala', 'groovy', 'kotlin' ]
-
-      // 使用する Kotlin のバージョン
-      // Maven リポジトリから Kotlin を取得する際に参照される
-      kotlinVersion = '1.0.0-beta-4584'
-
-      // 開発に使用する Kotlin のライブラリ一覧
-      // kotlin-stdlib は標準ライブラリのため必須
-      kotlinLibraries =
-      [
-        "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
-        "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
-      ]
-
-      // mcmod.info の改行コードを指定する
-      // newLineMap のキーからいずれかを選択
-      newLineType = 'lf'
-
-
-      // Mod に関する設定の集合
-      mcmod = [
-        // Mod のビルドに関する設定の集合
-        build: [
-          // 開発に使用する言語の名称
-          // jvmLanguages の中からいずれかを指定
-          language: 'java',
-
-          // コンパイルされるファイルの java 言語レベルを指定
-          languageLevel: 1.6,
-
-          // ソースファイルのエンコーディングを指定
-          encoding: 'utf8',
-
-          // 開発中であるか否か
-          // true にするとバージョンの末尾に '-SNAPSHOT' が付与される
-          snapshot: false,
-
-          // Mod が属する基本パッケージ
-          // 設定しない場合は mcmod.build.jar.groupId の値が参照される
-          package: '',
-
-
-          // Maven に関する設定の集合
-          maven: [
-            // Maven プラグインを有効にするか否か
-            enable: false,
-
-            // Maven リポジトリに関する設定の集合
-            repositories: [
-              // 依存関係解決の際にセントラルリポジトリを参照するか否か
-              central: false,
-
-              // 依存関係解決の際にローカルリポジトリを参照するか否か
-              local: false,
-
-              // 依存関係解決の際に JCenter リポジトリを参照するか否か
-              jcenter: false,
-
-              // 依存関係解決の際に参照するリポジトリの URL 一覧
-              url: []
-            ]
+        // Gradleプロジェクトの依存関係解決に関する設定
+        buildscript: [
+          // 依存関係解決時に参照するリポジトリの設定を行うクロージャ一覧
+          repositories: [
+            { delegate.jcenter() },
+            { delegate.maven {
+              name = 'forge'
+              url  = 'http://files.minecraftforge.net/maven'
+            } }
           ],
 
-
-          // この Mod が依存するライブラリとそのスコープに関する設定
+          // 依存するプラグインの設定を行うクロージャ一覧
           dependencies: [
-            // スコープに紐付く依存ライブラリ一覧を記述する
-            // スコープに関しては下記のURLを参照
-            // http://www.techscore.com/tech/Java/ApacheJakarta/Maven/3/#maven-3-1-1
-            // 例)
-            // compile: [ 'groupId:artifactId:version', '...' ]
-            :
-          ],
-
-
-          // 出力される jar ファイルに関する設定の集合
-          jar: [
-            // jar ファイルのグループ ID
-            // 設定必須項目
-            groupId: '',
-
-            // jar ファイルのベース名称
-            // 設定しない場合は mcmod.info.name の値が参照される
-            // mcmod.info.name でファイル名に使用できない文字を
-            // 使っている場合はこの値を設定する
-            baseName: '',
-
-            // アーカイブファイル出力に関する設定の集合
-            archive: [
-              // ソース･アーカイブを出力するか否か
-              source: true,
-
-              // ドキュメント･アーカイブを出力するか否か
-              document: false
-            ],
-
-            // マニフェストファイルに関する設定の集合
-            manifest: [
-              // マニフェストファイルに記述されるメインアトリビュートの内容
-              // 例)
-              // attributes: [ FMLCorePlugin: 'com.example.LoadingPlugin' ]
-              attributes: [:]
-            ]
+            { delegate.classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT' }
           ]
         ],
 
+        // Modに関する情報･設定
+        mod: [
+          // Modが属する基本パッケージ
+          // 必須項目
+          basePackage: '',
 
-        // mcmod.info ファイルに記述される情報の集合
-        // また､これらの情報のうち modid, name, version, updateUrl の項目は
-        // それぞれ @@MODID@@, @@MODNAME@@, @@MODVERSION@@, @@UPDATEJSON@@ という
-        // 文字列を置換する際に参照される
-        info: [
-          // この Mod の ID
-          // 設定必須項目
-          modid: '',
+          // Modを識別するための文字列
+          // 必須項目
+          id: '',
 
-          // この Mod の名称
-          // 設定必須項目
+          // Modの名称
+          // 必須項目
           name: '',
 
-          // この Mod の説明文
+          // 説明文
           description: '',
 
-          // この Mod のバージョン
-          // 設定必須項目
+          // バージョン
+          // 必須項目
           version: '',
 
-          // この Mod の開発に使用する Forge のバージョン
-          // 設定必須項目
-          mcversion: forge.version,
+          // 開発に使用するMinecraft Forgeのバージョン
+          // 設定しない場合はsettings.forge.versionが参照される
+          // 必須項目
+          mcversion: '',
 
-          // この Mod を配布している Web サイトの URL
-          url: '',
+          // Mod公開場所のURL
+          homepage: '',
 
-          // この Mod のアップデート確認用の json ファイルの URL
-          // json の書式に関しては下記 URL を参照
+          // アップデート確認用jsonファイルのURL
+          // jsonの書式に関しては下記URLを参照
           // https://gist.github.com/LexManos/7aacb9aa991330523884
-          updateUrl: '',
+          updateJson: '',
 
-          // この Mod の作者一覧
-          authorList: [],
+          // 開発者一覧
+          authors: [],
 
-          // この Mod のクレジット表記
+          // クレジット表記
           credits: '',
 
-          // この Mod のロゴファイル
-          logoFile: '',
+          // ロゴファイルへのパス
+          logo: '',
 
-          // この Mod のスクリーンショット一覧
+          // Modのイメージファイルへのパス一覧
           screenshots: [],
 
-          // この Mod が依存する Mod 一覧
-          dependencies: []
+          // 依存しているModの一覧
+          dependencies: [],
+
+          // mcmod.infoの内容となるMapオブジェクトを返すクロージャ
+          info: { [
+            modid:        settings.mod.id,
+            name:         settings.mod.name,
+            description:  settings.mod.description,
+            version:      settings.mod.version,
+            mcversion:    settings.mod.mcversion,
+            url:          settings.mod.homepage,
+            updateUrl:    settings.mod.updateJson,
+            authorList:   settings.mod.authors,
+            credits:      settings.mod.credits,
+            logoFile:     settings.mod.logo,
+            screenshots:  settings.mod.screenshots,
+            dependencies: settings.mod.dependencies
+          ] }
+        ],
+
+        // ビルド関連の設定
+        build: [
+          // 開発に使用するJVM言語を指定する
+          // 有効な言語一覧 [ 'java', 'scala', 'groovy', 'kotlin' ]
+          // 必須項目
+          language: '',
+
+          // コンパイルされるファイルのJava言語レベルを指定する
+          languageLevel: 1.6,
+
+          // ソースファイルのエンコーディングを指定する
+          encoding: 'utf8',
+
+          // 開発に使用するプラグインを設定する
+          plugins: [
+            'net.minecraftforge.gradle.forge'
+          ],
+
+          // Modの依存関係解決時に参照されるリポジトリの設定を行うクロージャ一覧
+          repositories: [],
+
+          // Modが依存するライブラリの設定を行うクロージャ一覧
+          // スコープに関しては以下のURLを参照
+          // http://www.techscore.com/tech/Java/ApacheJakarta/Maven/3/#maven-3-1-1
+          dependencies: [],
+
+          // プロジェクトにより出力されるjarファイル関連の設定
+          jar: [
+            // jarファイルのグループID
+            // 設定しない場合はsettings.mod.basePackageが参照される
+            groupId: '',
+
+            // jarファイルのベース名称
+            // 設定しない場合はsettings.mod.nameが参照される
+            baseName: '',
+
+            // Modのマニフェストファイル関連の設定
+            manifest: [
+              // メインアトリビュートの内容
+              // 例)
+              // attributes: [ FMLCorePlugin: 'com.example.ExampleLoadingPlugin' ]
+              attributes: [:]
+            ],
+
+            // アーカイブ出力に関する設定
+            makeArchive: [
+              // ソース･アーカイブを出力する
+              source: false,
+
+              // ドキュメント･アーカイブを出力する
+              document: false
+            ]
+          ]
         ]
       ]
-
-      // ビルド設定, Mod 情報に対するエイリアスの設定
-      bild = mcmod.build
-      info = mcmod.info
-
     }
 
 
@@ -195,24 +172,45 @@ gradle.settingsEvaluated {
     apply from: 'properties.gradle'
 
 
-    // システム設定のアサーション
-    assert newLineMap[ newLineType ]
+    // システム関連の設定項目に対するアサーション
+    assert [ '\r', '\n', '\r\n', System.properties[ 'line.separator' ] ].contains( settings.lineSeparator )
 
-    // ビルド設定のアサーション
-    assert jvmLanguages.contains( bild?.language )
-    assert bild?.jar?.groupId?.trim()
 
-    // Mod 情報のアサーション
-    assert info?.modid?.trim()
-    assert info?.name?.trim()
-    assert info?.version?.trim()
-    assert info?.mcversion?.trim()
+    // Minecraft Forge関連の設定項目に対するアサーション
+    assert settings.forge.version.trim()
+    assert settings.forge.mappings.trim()
 
-    // jar ファイルのベース名称を設定
-    if ( !bild.jar.baseName?.trim() ) bild.jar.baseName = info.name
 
-    // 開発中であればバージョン文字列に '-SNAPSHOT' 修飾子を付与する
-    if ( bild.snapshot ) info.version += '-SNAPSHOT'
+    // Mod情報･設定項目に対するアサーション
+    assert settings.mod.basePackage.trim()
+    assert settings.mod.id.trim()
+    assert settings.mod.name.trim()
+    assert settings.mod.version.trim()
+
+    if ( !settings.mod.mcversion.trim() )
+      settings.mod.mcversion = settings.forge.version
+    assert settings.mod.mcversion.trim()
+
+
+    // ビルド関連項目に対するアサーション
+    assert [ 'java', 'scala', 'groovy', 'kotlin' ].contains( settings.build.language )
+
+    if ( !settings.build.jar.groupId.trim() )
+      settings.build.jar.groupId = settings.mod.basePackage
+    assert settings.build.jar.groupId.trim()
+
+    if ( !settings.build.jar.baseName.trim() )
+      settings.build.jar.baseName = settings.mod.name
+    assert settings.build.jar.baseName.trim()
+
+
+    // 改行コードの変更
+    System.properties[ 'line.separator' ] = settings.lineSeparator
+
+    // 言語固有の設定をロード
+    def settings_for_language = new File( "settings_${ settings.build.language }.gradle" )
+    if ( settings_for_language.exists() )
+      apply from: settings_for_language
 
   }
 
@@ -221,56 +219,23 @@ gradle.settingsEvaluated {
 
 // プロジェクト評価前に必要な処理
 gradle.beforeProject { project ->
-  // build.gradle で利用する拡張プロパティの定義
   project.ext {
-
-    // 改行コードの設定
-    eol = newLineMap[ newLineType ]
-
-    // 各言語のプロジェクト時のみ後続のブロックを実行するクロージャ
-    // 使用例)
-    // // bild.language が java の場合のみ 'this is java project.' と表示される
-    // if_javaProject { println 'this is java project.' }
-    jvmLanguages.each { lang ->
-      project.ext."if_${ lang }Project" = { if ( bild.language == lang ) it.call() }
-    }
-
     // プロジェクト共用のテンポラリフォルダ
     temporaryDir = project.file( "${ project.buildDir }/tmp" )
 
-    // 指定された名称のプラグインが
-    // ロードされているか否か評価するクロージャ
-    hasPlugin = { project.plugins.hasPlugin( it ) }
-
-    // プロジェクトに定義されている
-    // タスクの名称一覧を取得するクロージャ
-    taskNames = { -> project.tasks.getNames() }
-
-    // 指定された名称のタスクが
-    // 定義されているか否か評価するクロージャ
-    hasTask = { taskNames().contains( it ) }
-
-    // コンパイル前の変数展開時に参照される辞書を返す関数
-    replacements = { [
-      '@@MODID@@':       info.modid,
-      '@@MODNAME@@':     info.name,
-      '@@MODVERSION@@':  info.version,
-      '@@UPDATEJSON@@':  info.updateUrl
-    ] }
-
-  }
-
-  // Forge Gradle で利用されるプラグインのロード
-  project.configure( project.bild ) {
-    switch ( language ) {
-      case 'scala':
-      case 'groovy':
-        project.apply plugin: language
-        break
-      default: break
+    // リソースファイルコピー時の変数展開で参照される辞書を返すクロージャ
+    replaceTokens = {
+      settings.mod.info().subMap( [
+        'modid', 'version'
+      ] )
     }
 
-    if ( maven.enable ) { project.apply plugin: 'maven' }
+    // ソースコードコピー時の変数展開で参照される辞書を返すクロージャ
+    replacements = {
+      replaceTokens().collectEntries { [
+        // 不具合回避のためGStringはStringに変換する
+        ( "@${ it.key }@" as String ), it.value
+      ] }
+    }
   }
-
 }

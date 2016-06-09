@@ -1,29 +1,27 @@
 
-// クロージャ内で情報にアクセスするため
-// ローカル変数に拡張プロパティをバインドしておく
-def i = info
-def b = bild
-
-
-// mcmod.info の値を設定
-project.configure( i ) {
-  modid      = 'moj_fsmith'
-  name       = 'Furnasmith'
-  version    = '1.9-2'
-  url        = "http://manofj.com/minecraft"
-  updateUrl  = "http://manofj.com/minecraft/update?v=${ i.name }"
-  authorList = [ 'Man of J' ]
+project.configure( settings.forge ) {
+  version = '1.9.4-12.17.0.1940'
+  mappings = 'snapshot_20160518'
 }
 
-// mcmod.build の値を設定
-project.configure( b ) {
+project.configure( settings.mod ) {
+  basePackage = 'com.manofj.minecraft.moj_fsmith'
+  id          = 'moj_fsmith'
+  name        = 'Furnasmith'
+  version     = '1.9.4-1'
+  homepage    = 'http://manofj.com/minecraft'
+  updateJson  = 'http://manofj.com/minecraft/update?v=Furnasmith'
+  authors     = [ 'Man of J' ]
+}
+
+project.configure( settings.build ) {
   language = 'scala'
-  jar.with {
-    archive.source = false
-    groupId = "com.manofj.minecraft.${ i.modid }"
-    manifest.attributes = [
-      FMLCorePlugin:               "${ b.jar.groupId }.FurnasmithPlugin",
-      FMLCorePluginContainsFMLMod: "${ b.jar.groupId }.Furnasmith"
-    ]
-  }
+
+  repositories << { delegate.maven { url 'http://moj-files.x0.com/maven/' } }
+  dependencies << { delegate.compile 'com.manofj.minecraft.moj_commons:mc_commons:1.9.4-0.0.1' }
+
+  jar.manifest.attributes = [
+    FMLCorePlugin:               'com.manofj.minecraft.moj_fsmith.FurnasmithPlugin',
+    FMLCorePluginContainsFMLMod: 'com.manofj.minecraft.moj_fsmith.Furnasmith'
+  ]
 }
