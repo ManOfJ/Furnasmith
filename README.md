@@ -1,13 +1,19 @@
-Furnasmith - [Minecraft Mod](http://manofj.com/minecraft/)
+Furnasmith - [Minecraft Mod][homepage]
 ===============================
+Version: 1.9.4-1
 
-Version 1.9-2
 ![IMAGE](http://i.imgur.com/aNZ2q0F.gif "")
+
 
 0. 既知の不具合
 ---------------
 
-1. Mod 機能一覧
+
+1. 今後の更新予定
+-----------------
+
+
+2. Mod 機能一覧
 ---------------
 
   - かまどでツールを焼くことで修理を可能にする
@@ -15,16 +21,47 @@ Version 1.9-2
   - エンチャントを保持したまま修理が可能
     - 逆にエンチャントを消去することも可能
 
-2. インストール
+
+3. インストール
 ---------------
 
-  - 事前に [Minecraft Forge](http://files.minecraftforge.net/) をインストールしておいてください
-  - ダウンロードした jar ファイルを Forge 環境の mods フォルダに配置してください
+  - [ 依存関係 ] の項目を参考に必要な Mod や ライブラリをインストールしてください
+  - [ダウンロード][homepage]した jar ファイルを mods フォルダに移動させます
   - 以上です
 
-3. コンフィグ
----------------
 
+4. 依存関係
+-----------
+
+    Note:  
+      表記されている Minecraft Forge のバージョンは開発に使用したものです  
+      このバージョンでなければ動作しない､ということはないのであくまで参考程度に考えてください
+
+  - 1.9.4-1
+    - [Minecraft Forge][forge]: 1.9.4-12.17.0.1940
+    - [MC-Commons][commons]:    1.9.4-0.0.1
+
+
+  - 1.9-2
+    - [Minecraft Forge][forge]: 1.9-12.16.1.1891
+
+
+  - 1.9-1
+    - [Minecraft Forge][forge]: 1.9-12.16.0.1767-1.9 ( ~ 1.9-12.16.0.1885 )
+
+
+  - 1.8.9-1
+    - [Minecraft Forge][forge]: 1.8.9-11.15.0.1694
+
+
+  - 1.8-1
+    - [Minecraft Forge][forge]: 1.8-11.14.4.1577
+
+
+5. コンフィグ
+-------------
+
+  - 設定項目の詳細に関しては [Wiki](../../wiki/Configuration) を参照してください
   - ゲーム内で変更する場合 ( 推奨 )
     - タイトル画面から Mods -> 一覧から Furnasmith を選択 -> Config ボタンを押下
     - ゲームメニュー ( ゲーム中 ESC ) の Mod Options... を選択 -> 一覧から Furnasmith を選択 -> Config  ボタンを押下
@@ -32,7 +69,7 @@ Version 1.9-2
   - コンフィグファイルを直接編集する場合
     - Forge 環境コンフィグフォルダの moj_fsmith.cfg をエディタで編集
 
-修復可能･不可能指定ファイル
+修復可能･不可能指定ファイルについて
 
   - repairable.txt, blacklist.txt というファイルがそれぞれ修復可能, 修復不可能リストとして扱われます
     - 上記ファイルを Forge 環境コンフィグフォルダ配下の user フォルダ内に配置してください ( user フォルダは自動作成されないので手動で作成してください )
@@ -49,35 +86,50 @@ CL net.minecraft.item.ItemAxe
 RL minecraft:golden_sword
 ```
 
-4. 今後の更新予定
----------------
 
-5. 更新履歴
----------------
+6. 更新履歴
+-----------
 
-    Note:
-    バージョンの後ろに表記されている Mdk のバージョンは開発に使用したものです
-    このバージョンでなければ動作しない､ということはないのであくまで参考程度に考えてください
+  - 1.9.4-1
+    - Minecraft 1.9.4 に対応
+    - 依存関係に [MC-Commons][commons] を追加
 
-  - 1.9-2 @ Mdk 1.9-12.16.1.1891
+
+  - 1.9-2
     - Minecraft Forge 1.9-12.16.0.1886 以降に対応
-  - 1.9-1 @ Mdk 1.9-12.16.0.1767-1.9
+
+
+  - 1.9-1
     - Minecraft 1.9 に対応
     - コンフィグのファイル名を Mod名.cfg から ModID.cfg に変更
-  - 1.8.9-1 @ Mdk 1.8.9-11.15.0.1694
+
+
+  - 1.8.9-1
     - Minecraft 1.8.9 に対応
-  - 1.8-1 @ Mdk 1.8-11.14.4.1577
+
+
+  - 1.8-1
     - 公開
 
-6. ライセンス
----------------
+
+7. ライセンス
+-------------
 
 (c) Man of J, 2015-2016
 
 この Mod は [Minecraft Mod Public License - Version 1.0.1](./LICENSE.md) のもとで提供されています
 
----------------
 
-ご意見,ご要望,バグ報告などありましたら [Issue](https://github.com/ManOfJ/ExampleMod/issues) か下記の連絡手段でお願いします
+--------------------------------
+
+ご意見,ご要望,バグ報告などありましたら [Issue](../../issues) か下記の連絡手段でお願いします
   - E-mail: <man.of.j@outlook.com>
   - Twitter: [_ManOfJ](https://twitter.com/_ManOfJ)
+
+--------------------------------
+
+[//]: # ( リンクのエイリアス一覧 )
+
+[homepage]: http://manofj.com/minecraft/
+[forge]:    http://files.minecraftforge.net/
+[commons]:  https://github.com/ManOfJ/MC-Commons
