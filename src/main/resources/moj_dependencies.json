@@ -1,0 +1,18 @@
+{
+  "libraries": [
+    {
+      "maven": {
+        "url": "http://moj-files.x0.com/maven/",
+        "groupId": "com.manofj.minecraft.moj_commons",
+        "artifactId": "mc_commons",
+        "version": "1.9.4-0.0.1",
+        "checksum": {
+          "md5": "ca14eaa00492922c75ba60f0c23b21dc",
+          "sha1": "0a33795f011e99db7f63ae26c008b80a3d891c44"
+        }
+      },
+      "serverreq": true,
+      "clientreq": true
+    }
+  ]
+}
