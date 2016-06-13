@@ -1,6 +1,6 @@
 Furnasmith - [Minecraft Mod][homepage]
 ===============================
-Version: 1.9.4-1
+Version: 1.9.4-2
 
 ![IMAGE](http://i.imgur.com/aNZ2q0F.gif "")
 
@@ -25,9 +25,10 @@ Version: 1.9.4-1
 3. インストール
 ---------------
 
-  - [ 依存関係 ] の項目を参考に必要な Mod や ライブラリをインストールしてください
+  - 事前に [Minecraft Forge][forge] をインストールしておいてください
+  - [DependencyResolver][resolver] をインストールしてください
   - [ダウンロード][homepage]した jar ファイルを mods フォルダに移動させます
-  - 以上です
+  - 作業は以上です
 
 
 4. 依存関係
@@ -36,6 +37,12 @@ Version: 1.9.4-1
     Note:  
       表記されている Minecraft Forge のバージョンは開発に使用したものです  
       このバージョンでなければ動作しない､ということはないのであくまで参考程度に考えてください
+
+  - 1.9.4-2
+    - [Minecraft Forge][forge]: 1.9.4-12.17.0.1940
+    - [DependencyResolver][resolver]: 1.0
+    - [MC-Commons][commons]:    1.9.4-0.0.1
+
 
   - 1.9.4-1
     - [Minecraft Forge][forge]: 1.9.4-12.17.0.1940
@@ -90,6 +97,10 @@ RL minecraft:golden_sword
 6. 更新履歴
 -----------
 
+  - 1.9.4-2
+    - [DependencyResolver][resolver] での依存関係解決に対応
+
+
   - 1.9.4-1
     - Minecraft 1.9.4 に対応
     - 依存関係に [MC-Commons][commons] を追加
@@ -122,7 +133,7 @@ RL minecraft:golden_sword
 
 --------------------------------
 
-ご意見,ご要望,バグ報告などありましたら [Issue](../../issues) か下記の連絡手段でお願いします
+ご意見,ご要望,バグ報告などありましたら [Issues](../../issues) か下記の連絡手段でお願いします
   - E-mail: <man.of.j@outlook.com>
   - Twitter: [_ManOfJ](https://twitter.com/_ManOfJ)
 
@@ -132,4 +143,5 @@ RL minecraft:golden_sword
 
 [homepage]: http://manofj.com/minecraft/
 [forge]:    http://files.minecraftforge.net/
+[resolver]: https://github.com/ManOfJ/DependencyResolver
 [commons]:  https://github.com/ManOfJ/MC-Commons

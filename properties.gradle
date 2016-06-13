@@ -8,7 +8,7 @@ project.configure( settings.mod ) {
   basePackage = 'com.manofj.minecraft.moj_fsmith'
   id          = 'moj_fsmith'
   name        = 'Furnasmith'
-  version     = '1.9.4-1'
+  version     = '1.9.4-2'
   homepage    = 'http://manofj.com/minecraft'
   updateJson  = 'http://manofj.com/minecraft/update?v=Furnasmith'
   authors     = [ 'Man of J' ]
@@ -22,6 +22,7 @@ project.configure( settings.build ) {
 
   jar.manifest.attributes = [
     FMLCorePlugin:               'com.manofj.minecraft.moj_fsmith.FurnasmithPlugin',
-    FMLCorePluginContainsFMLMod: 'com.manofj.minecraft.moj_fsmith.Furnasmith'
+    FMLCorePluginContainsFMLMod: 'com.manofj.minecraft.moj_fsmith.Furnasmith',
+    DependsJson:                 'moj_dependencies.json'
   ]
 }
