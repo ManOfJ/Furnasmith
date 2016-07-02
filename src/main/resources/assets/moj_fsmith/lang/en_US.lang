@@ -1,7 +1,9 @@
 moj_fsmith.config.gui.title=Furnasmith Config
-moj_fsmith.config.allow_log_output=Allow log output
-moj_fsmith.config.allow_log_output.tooltip=Output the information of the items ( localized name, class name, resource location ) to log.
 moj_fsmith.config.repair_condition=Repair condition
 moj_fsmith.config.repair_condition.tooltip=When it is over the damage ( percentage ), can repair
 moj_fsmith.config.keep_enchantment=Keep enchantment
 moj_fsmith.config.keep_enchantment.tooltip=It is keep enchantment when it repair
+moj_fsmith.config.repairable_filepath=Filepath of repairable conditions
+moj_fsmith.config.repairable_filepath.tooltip=Absolute path or Relative path from config dir
+moj_fsmith.config.blacklist_filepath=Filepath of unrepairable conditions
+moj_fsmith.config.blacklist_filepath.tooltip=Absolute path or Relative path from config dir

@@ -1,110 +1,73 @@
 package com.manofj.minecraft.moj_fsmith
 
-import scala.collection.JavaConversions.asScalaSet
-import scala.collection.mutable.{ WeakHashMap => MutableWeakHashMap }
+import scala.collection.convert.WrapAsScala.asScalaSet
 import scala.language.existentials
 
-import org.apache.logging.log4j.{ LogManager, Logger }
-
-import net.minecraft.item.{ Item, ItemBlock, ItemStack }
+import net.minecraft.item.Item
+import net.minecraft.item.ItemBlock
 
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.{ Loader, Mod }
+import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.Mod.EventHandler
-import net.minecraftforge.fml.common.event.{ FMLPostInitializationEvent, FMLPreInitializationEvent }
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent
 
-import com.manofj.minecraft.moj_fsmith.FurnasmithConfigHandler.keep_enchantment
-import com.manofj.minecraft.moj_fsmith.FurnasmithExtractor.{ Blacklist, Repairable }
+import com.manofj.minecraft.moj_commons.logging.LoggerLikeMod
+import com.manofj.minecraft.moj_commons.util.ImplicitConversions.AnyExtension
+import com.manofj.minecraft.moj_commons.util.MinecraftMod
 
 
-/**
-  * Furnasmith の Mod オブジェクト
-  * 各種設定を行うほか、指定されたアイテムスタックが
-  * 修理可能であるか評価する関数を定義しておく
-  */
-@Mod( modid       = MOD_ID,
-      name        = NAME,
-      version     = VERSION,
-      updateJSON  = UPDATE_JSON,
-      modLanguage = LANGUAGE,
-      guiFactory  = GUI_FACTORY )
-object Furnasmith {
-  private[ this ] var loggerOpt = Option.empty[ Logger ]
+@Mod( modid       = Furnasmith.modId,
+      name        = Furnasmith.modName,
+      version     = Furnasmith.modVersion,
+      guiFactory  = Furnasmith.guiFactory,
+      modLanguage = "scala" )
+object Furnasmith
+  extends MinecraftMod
+  with    LoggerLikeMod
+{
 
-  // getSmeltingResult がコールされるたびに ItemStack の
-  // インスタンスが生成されるのを防ぐため､弱参照のマップでキャッシュする
-  private[ this ] val resultCache = MutableWeakHashMap.empty[ ItemStack, ItemStack ]
+  final val modId      = "@modid@"
+  final val modName    = "Furnasmith"
+  final val modVersion = "@version@"
+  final val guiFactory = "com.manofj.minecraft.moj_fsmith.FurnasmithGuiFactory"
 
-  // ロガーのゲッタ
-  def log = loggerOpt getOrElse LogManager.getLogger( MOD_ID )
-
-  /**
-    * FurnaceRecipes の getSmeltingResult の最後に追加される処理
-    * パラメータ item に対応するレシピがない場合､こちらの処理が呼ばれる
-    *
-    * パラメータ item が null ではなく､修復付加条件に当てはまるアイテムでもない場合は
-    * 修復可能条件に当てはまるか確認｡ 条件を満たしていればダメージ値がゼロの同アイテムを返す
-    *
-    * @param item かまどに入れられたアイテム
-    * @return 諸条件を満たしていれば 'ダメージ値がゼロの同アイテム' そうでなければ null を返す
-    */
-  def getSmeltingResult( item: ItemStack ): ItemStack = item match {
-    case Blacklist()  => null
-    case Repairable() =>
-      // キャッシュに対応するアイテムがあればそれを返す
-      // なければ新規に生成してキャッシュに追加
-      resultCache.getOrElseUpdate( item, {
-        Furnasmith.log.trace( s"Cache loading. Item hash:${ item.hashCode }" )
-        val result = item.copy()
-        result.setItemDamage( 0 )
-        // コンフィグの条件により､エンチャントを消去する
-        if ( result.hasTagCompound && !keep_enchantment )
-          result.getTagCompound.removeTag( "ench" )
-        result
-      })
-    case _ => null
-  }
 
   @EventHandler
   def preInit( evt: FMLPreInitializationEvent ): Unit = {
     import com.manofj.minecraft.moj_commons.config.javaFile2ForgeConfig
-    
-    loggerOpt = Option( evt.getModLog )
 
     FurnasmithConfigHandler.captureConfig( evt.getSuggestedConfigurationFile )
     MinecraftForge.EVENT_BUS.register( FurnasmithConfigHandler )
+
   }
 
   @EventHandler
   def postInit( evt: FMLPostInitializationEvent ): Unit = {
-    if ( FurnasmithConfigHandler.allow_log_output ) {
-      import net.minecraft.client.resources.I18n.{ format => i18n }
+    import net.minecraft.client.resources.I18n.{ format => i18n }
+    import net.minecraft.item.Item.{ REGISTRY => itemRegistry }
 
-      import net.minecraft.item.Item.{ REGISTRY => itemRegistry }
+    import com.manofj.minecraft.moj_commons.util.ImplicitConversions.BooleanExtension
 
-      // すべてのブロックではないアイテムの情報をログに出力
-      log.info( "*" * 64 )
-      log.info( "Item Name,Class Name,SuperClass Name,Resource Location" )
+    // ログにアイテムの情報を出力
+    debug( "*" * 64 )
+    debug( "Item Name,Class Name,SuperClass Name,Resource Location" )
+    itemRegistry.getKeys.foreach { itemRegistry.getObject( _ ) match {
+      case block: ItemBlock => // 何もしない
+      case item: Item =>
+        val displayName = i18n( s"${ item.getUnlocalizedName }.name" )
+        val itemClass = item.getClass
+        val superClass = ( itemClass != classOf[ Item ] ) ?>
+                            itemClass.getSuperclass.?     !>
+                            Option.empty[ Class[ _ ] ]
+        val registryName = item.getRegistryName
 
-      itemRegistry.getKeys.map( itemRegistry.getObject ) foreach {
-        case block: ItemBlock => // skip
-        case item: Item       =>
-          val iName  = i18n( s"${ item.getUnlocalizedName }.name" )
-          val clazz  = item.getClass
-          val sClass = clazz.getSuperclass
-          val rName  = item.getRegistryName
+        debug( s"$displayName,${ itemClass.getName },${ superClass.fold("*")(_.getName) },${ registryName.toString }" )
+    } }
+    debug( "*" * 64 )
 
-          item.getRegistryName
-          log.info( s"$iName,${ clazz.getName },${ sClass.getName },${ rName.toString }" )
-      }
+    FurnasmithHooks.setupConditions()
 
-      log.info( "*" * 64 )
-    }
-
-    // 外部ファイルから修復可能･不可能リストを設定する
-    Option( Loader.instance().getConfigDir ) foreach { dir =>
-      Blacklist.loadConditions( dir )
-      Repairable.loadConditions( dir )
-    }
   }
+
 }

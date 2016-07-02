@@ -1,11 +1,24 @@
 package com.manofj.minecraft.moj_fsmith.asm
 
-import scala.collection.JavaConversions.{ asScalaBuffer, asScalaIterator }
+import scala.collection.convert.WrapAsScala.asScalaBuffer
+import scala.collection.convert.WrapAsScala.asScalaIterator
 
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
-import org.objectweb.asm.Opcodes.{ ACONST_NULL, ALOAD, GETSTATIC, INVOKEVIRTUAL }
-import org.objectweb.asm.tree.{ ClassNode, FieldInsnNode, InsnList, MethodInsnNode, MethodNode, VarInsnNode }
-import org.objectweb.asm.{ ClassReader, ClassWriter, Type }
+import org.objectweb.asm.Opcodes.ACONST_NULL
+import org.objectweb.asm.Opcodes.ALOAD
+import org.objectweb.asm.Opcodes.ARETURN
+import org.objectweb.asm.Opcodes.GETSTATIC
+import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
+import org.objectweb.asm.Type
+import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.FieldInsnNode
+import org.objectweb.asm.tree.InsnList
+import org.objectweb.asm.tree.InsnNode
+import org.objectweb.asm.tree.MethodInsnNode
+import org.objectweb.asm.tree.MethodNode
+import org.objectweb.asm.tree.VarInsnNode
 
 import net.minecraft.launchwrapper.IClassTransformer
 
@@ -20,62 +33,76 @@ import com.manofj.minecraft.moj_fsmith.Furnasmith
 class FurnasmithTransformer
   extends IClassTransformer
 {
-  // transform 関数内で使用する定数群
-  // 可読性重視のため命名規則を無視している
-  private[ this ] val FurnaceRecipes    = "net.minecraft.item.crafting.FurnaceRecipes"
+  // フックのハンドラオブジェクトの内部名称
+  private[ this ] val FurnasmithHooks = "com/manofj/minecraft/moj_fsmith/FurnasmithHooks$"
+
+  // 汎用の型オブジェクト､ディスクリプター
+  private[ this ] val ItemStackType = Type.getObjectType( remapper.unmap( "net/minecraft/item/ItemStack" ) )
+  private[ this ] val NullableDescriptor = "Ljavax/annotation/Nullable;"
+
+
+  // transformFurnaceRecipes 関数内で使用する定数群
+  private[ this ] val FurnaceRecipes = "net.minecraft.item.crafting.FurnaceRecipes"
   private[ this ] val getSmeltingResult = "getSmeltingResult"
-  private[ this ] val FurnasmithObj     = "com/manofj/minecraft/moj_fsmith/Furnasmith$"
-  private[ this ] val MethodDescriptor  = {
-    val unmapItemStack = Type.getObjectType( remapper.unmap( "net/minecraft/item/ItemStack" ) )
-    Type.getMethodDescriptor( unmapItemStack, unmapItemStack )
+  private[ this ] val getSmeltingResultDescriptor = Type.getMethodDescriptor( ItemStackType, ItemStackType )
+
+  // FurnaceRecipes#getSmeltingResult の return null; を
+  // return FurnasmithHooks.getSmeltingResult( item ); に書き換える
+  private[ this ] def transformFurnaceRecipes( rawName:    String,
+                                               mappedName: String,
+                                               bytes:      Array[ Byte ] ): Array[ Byte ] = {
+    val process: MethodNode => Unit = { method =>
+      val insts = method.instructions
+      insts.iterator foreach {
+        case node: InsnNode if node.getOpcode == ACONST_NULL => node.getNext match {
+        case next: InsnNode if next.getOpcode == ARETURN     =>
+            Furnasmith.info( s"Method $rawName.${ method.name }${ method.desc } " +
+              s"Replacing ACONST_NULL with INVOKEVIRTUAL $FurnasmithHooks.$getSmeltingResult" )
+
+            val newCode = new InsnList
+            newCode.add( new FieldInsnNode( GETSTATIC, FurnasmithHooks, "MODULE$", s"L$FurnasmithHooks;" ) )
+            newCode.add( new VarInsnNode( ALOAD, 1 ) )
+            newCode.add( new MethodInsnNode( INVOKEVIRTUAL, FurnasmithHooks, getSmeltingResult, method.desc, false ) )
+
+            insts.insert( node, newCode )
+            insts.remove( node )
+          case _ =>
+    } case _ => } }
+
+    val classNode   = new ClassNode
+    val classReader = new ClassReader( bytes )
+    classReader.accept( classNode, 0 )
+
+    classNode.methods.foreach {
+      // メソッド名が一致する場合( 開発環境下のみ該当 )
+      case method if method.name == getSmeltingResult => process( method )
+
+      // メソッドのディスクリプションが一致する場合( プロダクション環境下ではこちらが該当 )
+      case method if method.desc == getSmeltingResultDescriptor =>
+        // FurnaceRecipes にて上記ディスクリプションに該当するメソッドは
+        // 現状 getSmeltingResult のみだが一応､誤爆防止用にアノテーションをチェックする
+        for { annotations <- Option( method.visibleAnnotations )
+              annotation  <- Option( annotations.get( 0 ) )
+
+          if annotation.desc == NullableDescriptor
+        } process( method )
+
+      // 対象のメソッドではない
+      case _ => // 何もしない
+
+    }
+
+    val classWriter = new ClassWriter( COMPUTE_MAXS )
+    classNode.accept( classWriter )
+    classWriter.toByteArray
   }
 
-
-  /**
-    * FurnaceRecipes.getSmeltingResult 関数内の return null という箇所を
-    * return Furnasmith.getSmeltingResult( itemStack ) に書き換える作業を行う
-    *
-    * @param name クラスファイルから読み取ったそのままのクラス名
-    * @param transformedName 上記 name パラメータをマッピングしたもの
-    * @param basicClass クラスの情報をバイト配列化したもの
-    * @return 書き換え後のデータ
-    */
-  override def transform( name:            String,
-                          transformedName: String,
-                          basicClass:      Array[ Byte ] ): Array[ Byte ] =
-    transformedName match {
-      case FurnaceRecipes =>
-        def hooking( method: MethodNode ): Unit = {
-          val instructions = method.instructions
-          instructions.iterator foreach {
-            case insnNode if insnNode.getOpcode == ACONST_NULL =>
-              Furnasmith.log.info( s"Method $name.${ method.name }${ method.desc } " +
-                s"Replacing ACONST_NULL with INVOKEVIRTUAL $FurnasmithObj.$getSmeltingResult" )
-
-              val list = new InsnList
-              list.add( new FieldInsnNode( GETSTATIC, FurnasmithObj, "MODULE$", s"L$FurnasmithObj;" ) )
-              list.add( new VarInsnNode( ALOAD, 1 ) )
-              list.add( new MethodInsnNode( INVOKEVIRTUAL, FurnasmithObj, getSmeltingResult, method.desc, false ) )
-
-              instructions.insert( insnNode, list )
-              instructions.remove( insnNode )
-            case _ =>
-          }
-        }
-
-        val classNode   = new ClassNode
-        val classReader = new ClassReader( basicClass )
-        classReader.accept( classNode, 0 )
-
-        classNode.methods.foreach {
-          case method if method.name == getSmeltingResult => hooking( method )
-          case method if method.desc == MethodDescriptor  => hooking( method )
-          case _                                          =>
-        }
-
-        val classWriter = new ClassWriter( COMPUTE_MAXS )
-        classNode.accept( classWriter )
-        classWriter.toByteArray
-      case _  => basicClass
+  override def transform( rawName:    String,
+                          mappedName: String,
+                          bytes:      Array[ Byte ] ): Array[ Byte ] =
+    mappedName match {
+      case FurnaceRecipes => transformFurnaceRecipes( rawName, mappedName, bytes )
+      case _  => bytes
     }
+
 }
