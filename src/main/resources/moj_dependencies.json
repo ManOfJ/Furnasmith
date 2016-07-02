@@ -5,10 +5,10 @@
         "url": "http://moj-files.x0.com/maven/",
         "groupId": "com.manofj.minecraft.moj_commons",
         "artifactId": "mc_commons",
-        "version": "1.9.4-0.0.1",
+        "version": "1.10.2-0.0.2",
         "checksum": {
-          "md5": "ca14eaa00492922c75ba60f0c23b21dc",
-          "sha1": "0a33795f011e99db7f63ae26c008b80a3d891c44"
+          "md5": "9c0a9894b1ecc2301362782813f5d383",
+          "sha1": "bded53f4ae66bac434eaf8a356763a6f1f0facd5"
         }
       },
       "serverreq": true,
