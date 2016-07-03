@@ -1,7 +1,11 @@
 moj_fsmith.config.gui.title=Furnasmith コンフィグ
-moj_fsmith.config.allow_log_output=ログ出力許可
-moj_fsmith.config.allow_log_output.tooltip=アイテムのリソースロケーション･クラス名称といった情報をログファイルに書き出します
 moj_fsmith.config.repair_condition=修理条件
 moj_fsmith.config.repair_condition.tooltip=ツールの損耗度がこの値以上であれば修理が可能となります
 moj_fsmith.config.keep_enchantment=エンチャントの保持
 moj_fsmith.config.keep_enchantment.tooltip=修理時にエンチャントを保持するか否か
+moj_fsmith.config.repairable_filepath=修復可能リストのファイルパス
+moj_fsmith.config.repairable_filepath.tooltip=絶対パスかコンフィグディレクトリからの相対パスが指定できます
+moj_fsmith.config.blacklist_filepath=修復不可能リストのファイルパス
+moj_fsmith.config.blacklist_filepath.tooltip=絶対パスかコンフィグディレクトリからの相対パスが指定できます
+moj_fsmith.config.extra_cook_time=追加精錬時間のベース値
+moj_fsmith.config.extra_cook_time.tooltip=0 以下の数値を設定することで機能を無効化します
