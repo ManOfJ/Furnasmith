@@ -7,3 +7,5 @@ moj_fsmith.config.repairable_filepath=Filepath of repairable conditions
 moj_fsmith.config.repairable_filepath.tooltip=Absolute path or Relative path from config dir
 moj_fsmith.config.blacklist_filepath=Filepath of unrepairable conditions
 moj_fsmith.config.blacklist_filepath.tooltip=Absolute path or Relative path from config dir
+moj_fsmith.config.extra_cook_time=Base of extra cook time
+moj_fsmith.config.extra_cook_time.tooltip=Disable extra cook time by less than or equal to 0

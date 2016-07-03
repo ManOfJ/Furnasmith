@@ -19,6 +19,9 @@ private[ moj_fsmith ] object FurnasmithSettings {
   final val BLACKLIST_FILEPATH_KEY = "blacklist_filepath"
   final val BLACKLIST_FILEPATH_DEFAULT = "user/blacklist.txt"
 
+  final val EXTRA_COOK_TIME_KEY = "extra_cook_time"
+  final val EXTRA_COOK_TIME_DEFAULT = 0d
+
 
   // ツールが修復可能になる損耗度 ( 百分率 )
   private[ this ] var repairConditionOpt = Option.empty[ Double ]
@@ -36,6 +39,10 @@ private[ moj_fsmith ] object FurnasmithSettings {
   private[ this ] var blacklistFilepathOpt = Option.empty[ String ]
   def blacklistFilepath: String = blacklistFilepathOpt.getOrElse( BLACKLIST_FILEPATH_DEFAULT )
 
+  // 追加精錬時間のベース値
+  private[ this ] var extraCookTimeOpt = Option.empty[ Double ]
+  def extraCookTime: Float = extraCookTimeOpt.getOrElse( EXTRA_COOK_TIME_DEFAULT ).toFloat
+
 
   // コンフィグの変更を設定値に反映する
   def reflectConfigChanges( data: Map[ String, Any ] ): Unit = {
@@ -45,6 +52,7 @@ private[ moj_fsmith ] object FurnasmithSettings {
     keepEnchantmentOpt    = value[ Boolean ]( KEEP_ENCHANTMENT_KEY ).?
     repairableFilepathOpt = value[ String ]( REPAIRABLE_FILEPATH_KEY ).?
     blacklistFilepathOpt  = value[ String ]( BLACKLIST_FILEPATH_KEY ).?
+    extraCookTimeOpt      = value[ Double ]( EXTRA_COOK_TIME_KEY ).?
 
   }
 

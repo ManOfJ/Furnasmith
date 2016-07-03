@@ -63,6 +63,12 @@ object FurnasmithConfigHandler
     prop.requiresMcRestart
     data += BLACKLIST_FILEPATH_KEY -> prop.getString
 
+    prop = cfg.get( configId, EXTRA_COOK_TIME_KEY, EXTRA_COOK_TIME_DEFAULT )
+    prop.setComment( comment( EXTRA_COOK_TIME_KEY ) )
+    prop.setLanguageKey( languageKey( EXTRA_COOK_TIME_KEY ) )
+    prop.requiresMcRestart
+    data += EXTRA_COOK_TIME_KEY -> prop.getDouble
+
     if ( cfg.hasChanged ) cfg.save()
 
     FurnasmithSettings.reflectConfigChanges( data.result )

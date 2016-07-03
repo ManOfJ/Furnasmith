@@ -12,6 +12,7 @@ import scala.util.Try
 import org.apache.commons.io.FileUtils
 
 import net.minecraft.item.Item
+import net.minecraft.item.Item.ToolMaterial
 import net.minecraft.item.ItemStack
 
 import net.minecraftforge.fml.common.Loader
@@ -116,6 +117,17 @@ object FurnasmithHooks {
       } } )
     }
 
-
+  /**
+    * 指定されたアイテムの精錬が完了するまでの時間を返す
+    * 指定されたアイテムが修復可能であれば､アイテムの耐久値に応じた長さの時間を返す
+    * それ以外のアイテムの場合は本来の値 `200` を返す
+    */
+  def getCookTime( item: ItemStack ): Int =
+    if ( !isItemRepairable( item ) || settings.extraCookTime <= 0F ) 200
+    else {
+      // ダイヤモンドツールの最大耐久値をベースにして追加精錬時間を算出
+      val base = ToolMaterial.DIAMOND.getMaxUses: Float
+      math.round( settings.extraCookTime * ( item.getMaxDamage / base ) ) + 200
+    }
 
 }
